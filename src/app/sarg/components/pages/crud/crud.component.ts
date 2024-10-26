@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {Product} from 'src/app/demo/api/product';
+import {Product} from 'src/app/sarg/api/product';
 import {MessageService} from 'primeng/api';
 import {Table} from 'primeng/table';
 

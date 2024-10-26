@@ -96,7 +96,7 @@
 								width="50" />
 						</td>
 						<td style="width: 35%; min-width: 7rem">{{ product.name }}</td>
-						<td style="width: 35%; min-width: 8rem">{{ product.price | currency: 'USD' }}</td>
+						<td style="width: 35%; min-width: 8rem">{{ product.price | currency : 'USD' }}</td>
 						<td style="width: 15%">
 							<button
 								pButton
@@ -229,10 +229,7 @@
 	<div class="col-12 xl:col-6">
 		<div class="card">
 			<h5>Sales Overview</h5>
-			<p-chart
-				type="line"
-				[data]="chartData"
-				[options]="chartOptions"></p-chart>
+			<app-mapa-mostrar-fichas></app-mapa-mostrar-fichas>
 		</div>
 
 		<div class="card">

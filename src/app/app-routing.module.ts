@@ -1,6 +1,9 @@
 import {RouterModule} from '@angular/router';
 import {NgModule} from '@angular/core';
 import {AppLayoutComponent} from './layout/app.layout.component';
+import {DashboardModule} from './sarg/components/dashboard/dashboard.module';
+import {PagesModule} from './sarg/components/pages/pages.module';
+import {AuthModule} from './sarg/components/auth/auth.module';
 
 @NgModule({
 	imports: [
@@ -10,11 +13,11 @@ import {AppLayoutComponent} from './layout/app.layout.component';
 					path: '',
 					component: AppLayoutComponent,
 					children: [
-						{path: '', loadChildren: () => import('./demo/components/dashboard/dashboard.module').then((m) => m.DashboardModule)},
-						{path: 'pages', loadChildren: () => import('./demo/components/pages/pages.module').then((m) => m.PagesModule)},
+						{path: '', loadChildren: () => import('./sarg/components/dashboard/dashboard.module').then((m) => m.DashboardModule)},
+						{path: 'pages', loadChildren: () => import('./sarg/components/pages/pages.module').then((m) => m.PagesModule)},
 					],
 				},
-				{path: 'auth', loadChildren: () => import('./demo/components/auth/auth.module').then((m) => m.AuthModule)},
+				{path: 'auth', loadChildren: () => import('./sarg/components/auth/auth.module').then((m) => m.AuthModule)},
 				{path: '**', redirectTo: '/notfound'},
 			],
 			{scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled', onSameUrlNavigation: 'reload'},
