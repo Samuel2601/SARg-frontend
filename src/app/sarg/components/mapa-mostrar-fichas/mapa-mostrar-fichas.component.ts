@@ -25,13 +25,12 @@ interface MarkerGroup {
 	providers: [DatePipe],
 })
 export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
-	@Input() ficha!: any;
-	@Input() incidente!: boolean;
-	@Input() poligon_arr!: GeoFeature[];
+	@Input() features!: any;
+	@Input() categoria!: string;
 
 	mapCustom: google.maps.Map;
 	load_fullscreen: boolean = false;
-	fichas_sectoriales_arr: any[];
+	features_arr: any[];
 
 	constructor(private router: Router, private googlemaps: GoogleMapsService, private datePipe: DatePipe) {}
 
@@ -56,17 +55,13 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 			this.initFullscreenControl();
 			setTimeout(async () => {
-				if (this.poligon_arr) {
-					this.mostrarpoligono();
-				}
-
-				if (this.ficha) {
-					if (Array.isArray(this.ficha)) {
-						this.fichas_sectoriales_arr = this.ficha;
+				if (this.features) {
+					if (Array.isArray(this.features)) {
+						this.features_arr = this.features;
 					} else {
-						this.fichas_sectoriales_arr = [this.ficha];
+						this.features_arr = [this.features];
 					}
-					//console.log(this.fichas_sectoriales_arr);
+					//console.log(this.features_arr);
 					await this.getcategorias();
 					await this.marcadoresmapa();
 				} else {
@@ -126,7 +121,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 	async getcategorias() {
 		this.actividades = [];
-		this.fichas_sectoriales_arr.forEach((item: any) => {
+		this.features_arr.forEach((item: any) => {
 			if (!item.actividad) {
 				return; // Saltar al siguiente elemento
 			}
@@ -160,7 +155,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		this.markers = [];
 		this.markerGroups = [];
 		// Agrupar marcadores por posición
-		this.fichas_sectoriales_arr.forEach((item: any) => {
+		this.features_arr.forEach((item: any) => {
 			if (
 				!item.direccion_geo ||
 				!item.direccion_geo.latitud ||
@@ -273,8 +268,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		let infoContent = `
             <div class="info-window-content">
                 ${
-									item.es_articulo && this.router.url !== `/ver-ficha/${item._id}`
-										? `<a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a><br>`
+									item.es_articulo && this.router.url !== `/ver-features/${item._id}`
+										? `<a href="/ver-features/${item._id}" class="btn-ver-articulo">Ver Artículo</a><br>`
 										: ''
 								}
                 <p>Fecha${this.incidente ? '' : ' del evento'}: ${formattedDate}</p>
@@ -347,8 +342,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                 <h5>${this.incidente ? 'Incidente' : item.title_marcador}</h5>
                 <p>Fecha: ${formattedDate}</p>
                 ${
-									item.es_articulo && this.router.url !== `/ver-ficha/${item._id}`
-										? `<a href="/ver-ficha/${item._id}" class="btn-ver-articulo">Ver Artículo</a>`
+									item.es_articulo && this.router.url !== `/ver-features/${item._id}`
+										? `<a href="/ver-features/${item._id}" class="btn-ver-articulo">Ver Artículo</a>`
 										: ''
 								}
                 <a href="https://www.google.com/maps/dir/?api=1&destination=${item.direccion_geo.latitud},${item.direccion_geo.longitud}" 
@@ -375,8 +370,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	}
 
 	verArticulo(fichaId: string): void {
-		// Redirigir a la página de detalle de la ficha sectorial como artículo
-		this.router.navigate(['/ver-ficha', fichaId]);
+		// Redirigir a la página de detalle de la features sectorial como artículo
+		this.router.navigate(['/ver-features', fichaId]);
 	}
 
 	initFullscreenControl(): void {
@@ -439,6 +434,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 			console.log(e.latLng.lat(), e.latLng.lng());
 		}
 	};
+
 	ngOnDestroy(): void {
 		// Limpia el mapa cuando el componente se destruye
 		if (this.mapCustom) {
