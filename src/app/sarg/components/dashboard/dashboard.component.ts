@@ -26,16 +26,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
 		});
 	}
 	features: GeoFeature[];
+	is_mapa_mostrar_fichas: boolean = false;
 	ngOnInit() {
 		this.initChart();
-		this.geoService.getNeighborhoods().subscribe(
-			(data) => {
-				this.features = data.features;
-				console.log(this.features);
-			},
-			(error) => console.error('Error:', error),
-		);
-
 		this.items = [
 			{label: 'Add New', icon: 'pi pi-fw pi-plus'},
 			{label: 'Remove', icon: 'pi pi-fw pi-minus'},

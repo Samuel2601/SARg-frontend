@@ -1,0 +1,39 @@
+<div>
+	<h2>Ubi Tanques</h2>
+
+	<div class="p-field">
+		<label for="search">Buscar:</label>
+		<input
+			id="search"
+			type="text"
+			[(ngModel)]="search"
+			(input)="onSearchChange()"
+			pInputText />
+	</div>
+
+	<p-table
+		[value]="data"
+		[paginator]="false"
+		[loading]="loading"
+		[rows]="limit"
+		(onPage)="onPageChange($event)">
+		<ng-template pTemplate="header">
+			<tr>
+				<th *ngFor="let field of fields.split(',')">{{ field }}</th>
+			</tr>
+		</ng-template>
+		<ng-template
+			pTemplate="body"
+			let-tanque>
+			<tr>
+				<td *ngFor="let field of fields.split(',')">{{ tanque[field.trim()] }}</td>
+			</tr>
+		</ng-template>
+	</p-table>
+
+	<p-paginator
+		[rows]="limit"
+		[totalRecords]="totalRecords"
+		[rowsPerPageOptions]="[5, 10, 20]"
+		(onPageChange)="onPageChange($event)"></p-paginator>
+</div>

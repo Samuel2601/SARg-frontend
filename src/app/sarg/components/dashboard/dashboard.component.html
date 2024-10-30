@@ -1,4 +1,8 @@
 <div class="grid">
+	<div class="col-12">
+		<app-ubi-tanques></app-ubi-tanques>
+	</div>
+
 	<div class="col-12 lg:col-6 xl:col-3">
 		<div class="card mb-0">
 			<div class="flex justify-content-between mb-3">
@@ -71,7 +75,9 @@
 	<div class="col-12 xl:col-6">
 		<div class="card">
 			<h5>Sales Overview</h5>
-			<app-mapa-mostrar-fichas></app-mapa-mostrar-fichas>
+			<app-mapa-mostrar-fichas
+				*ngIf="is_mapa_mostrar_fichas"
+				[poligon_arr]="features"></app-mapa-mostrar-fichas>
 		</div>
 
 		<div class="card">

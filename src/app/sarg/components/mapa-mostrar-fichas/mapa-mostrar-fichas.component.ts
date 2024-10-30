@@ -5,6 +5,7 @@ import {Loader} from '@googlemaps/js-api-loader';
 import {MarkerClusterer} from '@googlemaps/markerclusterer';
 import {GoogleMapsService} from '../../service/google.maps.service';
 import {ImportsModule} from '../../service/import';
+import {GeoFeature} from '../../api/poligon';
 
 interface MarkerGroup {
 	position: google.maps.LatLng;
@@ -26,6 +27,7 @@ interface MarkerGroup {
 export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	@Input() ficha!: any;
 	@Input() incidente!: boolean;
+	@Input() poligon_arr!: GeoFeature[];
 
 	mapCustom: google.maps.Map;
 	load_fullscreen: boolean = false;
@@ -54,6 +56,10 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 			this.initFullscreenControl();
 			setTimeout(async () => {
+				if (this.poligon_arr) {
+					this.mostrarpoligono();
+				}
+
 				if (this.ficha) {
 					if (Array.isArray(this.ficha)) {
 						this.fichas_sectoriales_arr = this.ficha;
@@ -68,6 +74,50 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 				}
 			}, 1000);
 		});
+	}
+	capaActiva: boolean = true;
+	arr_polygon: google.maps.Polygon[] = [];
+	mostrarpoligono() {
+		if (this.capaActiva) {
+			this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
+				polygon.setMap(null);
+			});
+			this.arr_polygon = [];
+			this.poligon_arr.forEach((feature: GeoFeature) => {
+				const geometry = feature.geometry;
+				const properties = feature.properties;
+
+				const coordinates = geometry.coordinates;
+				let paths: google.maps.LatLng[][] = [];
+
+				coordinates.forEach((polygon: any) => {
+					let path: google.maps.LatLng[] = [];
+					polygon.forEach((ring: any) => {
+						ring.forEach((coord: number[]) => {
+							path.push(new google.maps.LatLng(coord[1], coord[0]));
+						});
+					});
+					paths.push(path);
+				});
+				const poligono = new google.maps.Polygon({
+					paths: paths,
+					strokeColor: '#FF0000',
+					strokeOpacity: 0.8,
+					strokeWeight: 2,
+					fillColor: '#FF0000',
+					fillOpacity: 0.35,
+				});
+				poligono.setMap(this.mapCustom);
+				this.arr_polygon.push(poligono);
+			});
+			this.capaActiva = false;
+		} else {
+			// console.log(this.arr_polygon);
+			this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
+				polygon.setMap(this.mapCustom);
+			});
+			this.capaActiva = true;
+		}
 	}
 
 	async listarFichaSectorialMapa() {}

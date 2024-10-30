@@ -18,6 +18,10 @@ export class GeoService {
 	private readonly route2Layer = 'catastro%3ACAPAS-RUTAS';
 	private readonly neighborhoodsLayer = 'catastro%3Ageo_barrios';
 
+	private readonly lineaConduccionLayer = 'catastro%3ALINEA_CONDUCCION';
+	private readonly ubiTaquenLayer = 'catastro%3AUBI_TAQUENS';
+	private readonly geoPredioGeneralLayer = 'catastro%3Ageo_predio_general';
+
 	constructor(private http: HttpClient) {}
 
 	// Métodos de consulta con URLs generadas dinámicamente
@@ -35,5 +39,14 @@ export class GeoService {
 
 	getNeighborhoods(): Observable<any> {
 		return this.http.get<any>(`${this.siteUrl}${this.baseUrl}${this.baseParams}${this.neighborhoodsLayer}${this.outputFormat}`);
+	}
+	getLineaConduccion(): Observable<any> {
+		return this.http.get<any>(`${this.siteUrl}${this.baseUrl}${this.baseParams}${this.lineaConduccionLayer}${this.outputFormat}`);
+	}
+	getUbiTaquen(): Observable<any> {
+		return this.http.get<any>(`${this.siteUrl}${this.baseUrl}${this.baseParams}${this.ubiTaquenLayer}${this.outputFormat}`);
+	}
+	getGeoPredioGeneral(): Observable<any> {
+		return this.http.get<any>(`${this.siteUrl}${this.baseUrl}${this.baseParams}${this.geoPredioGeneralLayer}${this.outputFormat}`);
 	}
 }
