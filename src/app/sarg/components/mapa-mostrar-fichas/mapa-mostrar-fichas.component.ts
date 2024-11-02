@@ -5,6 +5,7 @@ import {Loader} from '@googlemaps/js-api-loader';
 import {MarkerClusterer} from '@googlemaps/markerclusterer';
 import {GoogleMapsService} from '../../service/google.maps.service';
 import {ImportsModule} from '../../service/import';
+import proj4 from 'proj4';
 
 interface MarkerGroup {
 	position: google.maps.LatLng;
@@ -28,6 +29,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	@Input() poligon!: boolean;
 	@Input() key_cat!: string;
 	@Input() key_cat_label!: string;
+	@Input() columns_info!: any[];
 
 	@Input() incidente!: boolean;
 
@@ -82,10 +84,10 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	async getcategorias() {
 		if (this.key_cat && this.key_cat_label) {
 			this.actividades = [];
+			this.actividad_select = [];
 			this.features_arr.forEach((item: any) => {
-				const value = item[this.key_cat].toString();
-				const label = item[this.key_cat_label].toString();
-				console.log(value);
+				const value = item[this.key_cat]?.toString();
+				const label = item[this.key_cat_label]?.toString();
 				if (!value) {
 					return; // Saltar al siguiente elemento
 				}
@@ -94,9 +96,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 					this.actividades.push({value, label: this.key_cat === this.key_cat_label ? value : label});
 				}
 			});
-			this.actividad_select.push(this.actividades[0]);
-
-			console.log(this.actividades);
+			this.actividad_select = this.actividades;
 		}
 	}
 
@@ -124,9 +124,9 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 				// Agrupar marcadores por posición
 				this.features_arr.forEach((item: any) => {
-					console.log(item);
 					const geomType = item.geom?.type || '';
 					const coordinates = item.geom?.coordinates;
+					const crsName = item.geom?.crs?.properties?.name;
 
 					// Verificar si es un punto y tiene coordenadas válidas
 					if (
@@ -134,7 +134,22 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 						coordinates &&
 						(!item[this.key_cat] || this.actividad_select.some((act: any) => act.value === item[this.key_cat]))
 					) {
-						const position = new google.maps.LatLng(coordinates[0], coordinates[1]);
+						// Definir la proyección en proj4 solo si aún no está definida
+						if (!proj4.defs[crsName]) {
+							// Agregar definiciones de proyecciones conocidas
+							if (!crsName) {
+								proj4.defs('EPSG:32617', '+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs');
+							} else {
+								proj4.defs(crsName, '+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs');
+							}
+							// Aquí puedes agregar más definiciones para otros CRS
+						}
+
+						// Convertir coordenadas de UTM a latitud/longitud utilizando el CRS detectado
+						const [lat, lng] = proj4(crsName, proj4.WGS84, [coordinates[0], coordinates[1]]);
+						console.log('Ubicaciones', lat, lng);
+						const position = new google.maps.LatLng(lng, lat);
+
 						const marker = this.createMarker(position, item);
 						const infoWindow = this.createInfoWindow(item);
 
@@ -234,29 +249,76 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	}
 
 	private createInfoWindow(item: any): google.maps.InfoWindow {
+		// Convertir coordenadas usando el CRS especificado, si existe
+		const crsName = item.geom?.crs?.properties?.name || 'EPSG:32617'; // Usa 'EPSG:32617' como predeterminado
+		const coordinates = item.geom?.coordinates;
+		let lat, lng;
+
+		if (coordinates && crsName) {
+			// Asegurarse de que el CRS esté definido en proj4
+			if (!proj4.defs[crsName]) {
+				// Definir el CRS en proj4 (si es necesario)
+				if (crsName === 'EPSG:32617') {
+					proj4.defs('EPSG:32617', '+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs');
+				}
+				// Agrega aquí más definiciones de CRS si es necesario
+			}
+
+			// Convertir a WGS84
+			[lat, lng] = proj4(crsName, proj4.WGS84, [coordinates[0], coordinates[1]]);
+		}
+
+		// Formatear fecha del evento
 		const formattedDate = this.datePipe.transform(this.incidente ? item.createdAt : item.fecha_evento, 'short');
-		let infoContent = `
-		<div class="info-window-content">
-			<p><strong>Capacidad:</strong> ${item.capacidad}</p>
-			<p><strong>Cota Máxima:</strong> ${item.cotaM}</p>
-			<p><strong>ID:</strong> ${item.id}</p>
-			<p><strong>Número:</strong> ${item.numero}</p>
-			<p><strong>Puntos:</strong> ${item.puntos}</p>
-			<p><strong>Volumen:</strong> ${item.volumenM} m³</p>
-			<p><strong>Coordenadas:</strong> X: ${item.x}, Y: ${item.y}</p>
-			<p>Fecha${this.incidente ? '' : ' del evento'}: ${formattedDate}</p>
-			<a href="https://www.google.com/maps/dir/?api=1&destination=${item.geom.coordinates[0]},${item.geom.coordinates[1]}"
-				target="_blank" class="btn-direcciones">
-				Cómo llegar
-			</a>
-		</div>
-		`;
+
+		// Crear contenido del InfoWindow
+		const infoContent = this.buildInfoContent(item, lng, lat, formattedDate);
 
 		return new google.maps.InfoWindow({
-			headerContent: item.sector,
+			headerContent: '(' + item.id + ')' + item.sector || 'Información',
 			content: infoContent,
 			maxWidth: 400,
 		});
+	}
+
+	// Método auxiliar para construir el contenido de InfoWindow dinámicamente
+	private buildInfoContent(item: any, lat: number, lng: number, formattedDate: string): string {
+		let infoContent = `<div class="info-window-content">`;
+		if (this.columns_info.length > 0) {
+			this.columns_info.forEach((element: any) => {
+				if (element.selected && element.visible) {
+					infoContent += `<p style="margin: 0" ><strong>${element.header}:</strong> ${item[element.field]}</p>`;
+				}
+			});
+		} else {
+			// Iterar sobre todas las propiedades de item, excluyendo geom y polígono
+			Object.entries(item).forEach(([key, value]) => {
+				if (key !== 'geom' && key !== 'poligono' && value !== undefined && value !== null) {
+					const formattedValue = key === 'volumenM' ? `${value} m³` : value;
+					infoContent += `<p><strong>${this.formatLabel(key)}:</strong> ${formattedValue}</p>`;
+				}
+			});
+		}
+
+		console.log(this.columns_info);
+
+		// Agregar enlace de Google Maps, si las coordenadas están disponibles
+		if (lat && lng) {
+			infoContent += `
+			<a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}"
+				target="_blank" class="btn-direcciones">
+				Cómo llegar
+			</a>`;
+		}
+		infoContent += `</div>`;
+
+		return infoContent;
+	}
+
+	// Método auxiliar para formatear la etiqueta de cada propiedad (convierte key a texto legible)
+	private formatLabel(key: string): string {
+		// Convertir camelCase a Capitalizado con espacios (e.g., "cotaM" -> "Cota M")
+		return key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (str) => str.toUpperCase());
 	}
 
 	private createMarker(position: google.maps.LatLng, item: any): google.maps.Marker {

@@ -7,7 +7,7 @@ import {Observable} from 'rxjs';
 })
 export class GeoService {
 	// Partes de la URL separadas
-	private readonly siteUrl = 'https://geoapi.esmeraldas.gob.ec';
+	private readonly siteUrl = 'http://154.38.182.200:8080';
 	private readonly baseUrl = '/geoserver/catastro/wms?';
 	private readonly baseParams = 'service=WFS&version=1.1.0&request=GetFeature&srsname=EPSG%3A4326&typeName=';
 	private readonly outputFormat = '&outputFormat=application%2Fjson';

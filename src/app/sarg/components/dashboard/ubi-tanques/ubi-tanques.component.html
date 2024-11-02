@@ -1,11 +1,12 @@
 <div>
 	<h2>Ubi Tanques</h2>
 	<app-mapa-mostrar-fichas
-		*ngIf="data.length > 0"
+		*ngIf="data.length > 0 && !loading"
 		[feature]="data"
-		poligon="false"
+		[poligon]="false"
 		key_cat="capacidad"
-		key_cat_label="capacidad"></app-mapa-mostrar-fichas>
+		key_cat_label="capacidad"
+		[columns_info]="columns"></app-mapa-mostrar-fichas>
 	<div
 		class="p-field"
 		style="display: flex; justify-content: space-between">
@@ -59,7 +60,7 @@
 	<p-paginator
 		[rows]="limit"
 		[totalRecords]="totalRecords"
-		[rowsPerPageOptions]="[5, 10, 20]"
+		[rowsPerPageOptions]="[5, 10, 20, 100, 1000]"
 		(onPageChange)="onPageChange($event)">
 	</p-paginator>
 

@@ -3,6 +3,7 @@ import {PrimeNGConfig} from 'primeng/api';
 import {ImportsModule} from 'src/app/sarg/service/import';
 import {UbiTanques, UbiTanquesService} from 'src/app/sarg/service/ubi-tanques.service';
 import {MapaMostrarFichasComponent} from '../../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
+import {GeoService} from 'src/app/sarg/service/geo.service';
 
 interface Column {
 	field: string;
@@ -42,7 +43,7 @@ export class UbiTanquesComponent {
 	displayColumnDialog: boolean = false; // Controla la visibilidad del diálogo
 	columnOrderList: Column[] = [...this.columns]; // Crea una copia para la configuración de columnas
 
-	constructor(private ubiTanquesService: UbiTanquesService, private primengConfig: PrimeNGConfig) {}
+	constructor(private ubiTanquesService: UbiTanquesService, private geoService: GeoService, private primengConfig: PrimeNGConfig) {}
 
 	ngOnInit() {
 		this.loadData();
