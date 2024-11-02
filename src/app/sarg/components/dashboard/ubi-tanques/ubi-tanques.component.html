@@ -1,6 +1,11 @@
 <div>
 	<h2>Ubi Tanques</h2>
-
+	<app-mapa-mostrar-fichas
+		*ngIf="data.length > 0"
+		[feature]="data"
+		poligon="false"
+		key_cat="capacidad"
+		key_cat_label="capacidad"></app-mapa-mostrar-fichas>
 	<div
 		class="p-field"
 		style="display: flex; justify-content: space-between">

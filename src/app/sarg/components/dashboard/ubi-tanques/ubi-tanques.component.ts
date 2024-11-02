@@ -2,6 +2,7 @@ import {Component} from '@angular/core';
 import {PrimeNGConfig} from 'primeng/api';
 import {ImportsModule} from 'src/app/sarg/service/import';
 import {UbiTanques, UbiTanquesService} from 'src/app/sarg/service/ubi-tanques.service';
+import {MapaMostrarFichasComponent} from '../../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 
 interface Column {
 	field: string;
@@ -13,7 +14,7 @@ interface Column {
 @Component({
 	selector: 'app-ubi-tanques',
 	standalone: true,
-	imports: [ImportsModule],
+	imports: [ImportsModule, MapaMostrarFichasComponent],
 	templateUrl: './ubi-tanques.component.html',
 	styleUrl: './ubi-tanques.component.scss',
 })
@@ -60,7 +61,7 @@ export class UbiTanquesComponent {
 		this.ubiTanquesService.findAll(this.page, this.limit, this.filter, this.search, selectedFields).subscribe((response: any) => {
 			this.data = response.data;
 			this.totalRecords = response.total;
-			console.log(response);
+			console.log(this.data);
 			this.loading = false;
 		});
 	}

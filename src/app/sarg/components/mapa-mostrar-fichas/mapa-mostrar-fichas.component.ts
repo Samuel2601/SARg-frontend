@@ -5,7 +5,6 @@ import {Loader} from '@googlemaps/js-api-loader';
 import {MarkerClusterer} from '@googlemaps/markerclusterer';
 import {GoogleMapsService} from '../../service/google.maps.service';
 import {ImportsModule} from '../../service/import';
-import {GeoFeature} from '../../api/poligon';
 
 interface MarkerGroup {
 	position: google.maps.LatLng;
@@ -25,11 +24,16 @@ interface MarkerGroup {
 	providers: [DatePipe],
 })
 export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
-	@Input() features!: any;
-	@Input() categoria!: string;
+	@Input() feature!: any;
+	@Input() poligon!: boolean;
+	@Input() key_cat!: string;
+	@Input() key_cat_label!: string;
+
+	@Input() incidente!: boolean;
 
 	mapCustom: google.maps.Map;
 	load_fullscreen: boolean = false;
+
 	features_arr: any[];
 
 	constructor(private router: Router, private googlemaps: GoogleMapsService, private datePipe: DatePipe) {}
@@ -55,13 +59,13 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 			this.initFullscreenControl();
 			setTimeout(async () => {
-				if (this.features) {
-					if (Array.isArray(this.features)) {
-						this.features_arr = this.features;
+				if (this.feature) {
+					if (Array.isArray(this.feature)) {
+						this.features_arr = this.feature;
 					} else {
-						this.features_arr = [this.features];
+						this.features_arr = [this.feature];
 					}
-					//console.log(this.features_arr);
+					console.log(this.features_arr);
 					await this.getcategorias();
 					await this.marcadoresmapa();
 				} else {
@@ -70,69 +74,30 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 			}, 1000);
 		});
 	}
-	capaActiva: boolean = true;
-	arr_polygon: google.maps.Polygon[] = [];
-	mostrarpoligono() {
-		if (this.capaActiva) {
-			this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
-				polygon.setMap(null);
-			});
-			this.arr_polygon = [];
-			this.poligon_arr.forEach((feature: GeoFeature) => {
-				const geometry = feature.geometry;
-				const properties = feature.properties;
-
-				const coordinates = geometry.coordinates;
-				let paths: google.maps.LatLng[][] = [];
-
-				coordinates.forEach((polygon: any) => {
-					let path: google.maps.LatLng[] = [];
-					polygon.forEach((ring: any) => {
-						ring.forEach((coord: number[]) => {
-							path.push(new google.maps.LatLng(coord[1], coord[0]));
-						});
-					});
-					paths.push(path);
-				});
-				const poligono = new google.maps.Polygon({
-					paths: paths,
-					strokeColor: '#FF0000',
-					strokeOpacity: 0.8,
-					strokeWeight: 2,
-					fillColor: '#FF0000',
-					fillOpacity: 0.35,
-				});
-				poligono.setMap(this.mapCustom);
-				this.arr_polygon.push(poligono);
-			});
-			this.capaActiva = false;
-		} else {
-			// console.log(this.arr_polygon);
-			this.arr_polygon.forEach((polygon: google.maps.Polygon) => {
-				polygon.setMap(this.mapCustom);
-			});
-			this.capaActiva = true;
-		}
-	}
 
 	async listarFichaSectorialMapa() {}
 	actividades: any[] = [];
 	actividad_select: any[] = [];
 
 	async getcategorias() {
-		this.actividades = [];
-		this.features_arr.forEach((item: any) => {
-			if (!item.actividad) {
-				return; // Saltar al siguiente elemento
-			}
-			// Verificar si la actividad ya existe en el array
-			if (!this.actividades.find((actividad) => actividad._id === item.actividad._id)) {
-				this.actividades.push(item.actividad);
-			}
-		});
-		this.actividad_select.push(this.actividades.find((act: any) => act.nombre === 'Festividades') || this.actividades[0]);
+		if (this.key_cat && this.key_cat_label) {
+			this.actividades = [];
+			this.features_arr.forEach((item: any) => {
+				const value = item[this.key_cat].toString();
+				const label = item[this.key_cat_label].toString();
+				console.log(value);
+				if (!value) {
+					return; // Saltar al siguiente elemento
+				}
+				// Verificar si la actividad ya existe en el array
+				if (!this.actividades.find((actividad) => actividad.value === value)) {
+					this.actividades.push({value, label: this.key_cat === this.key_cat_label ? value : label});
+				}
+			});
+			this.actividad_select.push(this.actividades[0]);
 
-		//console.log(this.actividad_select);
+			console.log(this.actividades);
+		}
 	}
 
 	private markers: google.maps.Marker[] = [];
@@ -142,81 +107,87 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	private readonly GROUPING_RADIUS_METERS = 20; // Radio de agrupación en metros
 
 	async marcadoresmapa() {
-		const bounds = new google.maps.LatLngBounds();
+		try {
+			if (!this.poligon) {
+				const bounds = new google.maps.LatLngBounds();
 
-		// Limpiar marcadores y grupos existentes
-		this.markers.forEach((marker) => {
-			marker.setMap(null);
-			marker = null;
-		});
-		if (this.markerCluster) {
-			this.markerCluster.clearMarkers();
-		}
-		this.markers = [];
-		this.markerGroups = [];
-		// Agrupar marcadores por posición
-		this.features_arr.forEach((item: any) => {
-			if (
-				!item.direccion_geo ||
-				!item.direccion_geo.latitud ||
-				!item.direccion_geo.longitud ||
-				(item.actividad && this.actividad_select.length > 0 && !this.actividad_select.find((act: any) => act._id === item.actividad._id))
-			) {
-				return; // Saltar al siguiente elemento
-			}
+				// Limpiar marcadores y grupos existentes
+				this.markers.forEach((marker) => {
+					marker.setMap(null);
+				});
+				this.markers = [];
+				this.markerGroups = [];
 
-			const position = new google.maps.LatLng(item.direccion_geo.latitud, item.direccion_geo.longitud);
-
-			const marker = this.createMarker(position, item);
-			const infoWindow = this.createInfoWindow(item);
-
-			// Buscar grupo cercano existente o crear uno nuevo
-			let nearestGroup = this.findNearestGroup(position);
-
-			if (nearestGroup) {
-				// Si encontramos un grupo cercano, añadimos el marcador a ese grupo
-				nearestGroup.markers.push({marker, item, infoWindow});
-				// Recalcular el centro del grupo (promedio de todas las posiciones)
-				this.updateGroupCenter(nearestGroup);
-			} else {
-				// Si no hay grupo cercano, crear uno nuevo
-				const newGroup = {
-					position: position,
-					markers: [{marker, item, infoWindow}],
-				};
-				this.markerGroups.push(newGroup);
-			}
-
-			this.markers.push(marker);
-			bounds.extend(position);
-		});
-
-		// Configurar listeners para cada grupo
-		this.markerGroups.forEach((group) => {
-			// Actualizar la posición de los marcadores en el grupo
-			group.markers.forEach(({marker}) => {
-				if (group.markers.length > 1) {
-					// Si hay múltiples marcadores en el grupo, ajustar sus posiciones
-					marker.setPosition(group.position);
+				if (this.markerCluster) {
+					this.markerCluster.clearMarkers();
 				}
 
-				marker.addListener('click', () => {
-					if (group.markers.length > 1) {
-						this.handleGroupClick(group);
-					} else {
-						this.setupSingleMarkerListeners(marker, group.markers[0].infoWindow, group.position);
+				// Agrupar marcadores por posición
+				this.features_arr.forEach((item: any) => {
+					console.log(item);
+					const geomType = item.geom?.type || '';
+					const coordinates = item.geom?.coordinates;
+
+					// Verificar si es un punto y tiene coordenadas válidas
+					if (
+						geomType === 'Point' &&
+						coordinates &&
+						(!item[this.key_cat] || this.actividad_select.some((act: any) => act.value === item[this.key_cat]))
+					) {
+						const position = new google.maps.LatLng(coordinates[0], coordinates[1]);
+						const marker = this.createMarker(position, item);
+						const infoWindow = this.createInfoWindow(item);
+
+						// Buscar grupo cercano existente o crear uno nuevo
+						let nearestGroup = this.findNearestGroup(position);
+
+						if (nearestGroup) {
+							nearestGroup.markers.push({marker, item, infoWindow});
+							this.updateGroupCenter(nearestGroup);
+						} else {
+							const newGroup = {
+								position: position,
+								markers: [{marker, item, infoWindow}],
+							};
+							this.markerGroups.push(newGroup);
+						}
+
+						this.markers.push(marker);
+						bounds.extend(position);
+					}
+					// Si es un polígono, puedes agregar lógica adicional aquí
+					else if (geomType === 'Polygon') {
+						// Lógica específica para manejar polígonos
 					}
 				});
-			});
-		});
 
-		if (this.mapCustom) {
-			this.markerCluster = new MarkerClusterer({
-				map: this.mapCustom,
-				markers: this.markers,
-			});
+				// Configurar listeners para cada grupo
+				this.markerGroups.forEach((group) => {
+					group.markers.forEach(({marker}) => {
+						if (group.markers.length > 1) {
+							marker.setPosition(group.position);
+						}
 
-			this.mapCustom.fitBounds(bounds);
+						marker.addListener('click', () => {
+							if (group.markers.length > 1) {
+								this.handleGroupClick(group);
+							} else {
+								this.setupSingleMarkerListeners(marker, group.markers[0].infoWindow, group.position);
+							}
+						});
+					});
+				});
+
+				if (this.mapCustom) {
+					this.markerCluster = new MarkerClusterer({
+						map: this.mapCustom,
+						markers: this.markers,
+					});
+					this.mapCustom.fitBounds(bounds);
+				}
+			}
+		} catch (error) {
+			console.error(error);
 		}
 	}
 
@@ -264,25 +235,25 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 	private createInfoWindow(item: any): google.maps.InfoWindow {
 		const formattedDate = this.datePipe.transform(this.incidente ? item.createdAt : item.fecha_evento, 'short');
-		//<h5>${this.incidente ? 'Incidente' : item.title_marcador}</h5>;
 		let infoContent = `
-            <div class="info-window-content">
-                ${
-									item.es_articulo && this.router.url !== `/ver-features/${item._id}`
-										? `<a href="/ver-features/${item._id}" class="btn-ver-articulo">Ver Artículo</a><br>`
-										: ''
-								}
-                <p>Fecha${this.incidente ? '' : ' del evento'}: ${formattedDate}</p>
-                <a href="https://www.google.com/maps/dir/?api=1&destination=${item.direccion_geo.latitud},${
-			item.direccion_geo.longitud
-		}" target="_blank" class="btn-direcciones">
-                    Cómo llegar
-                </a>
-            </div>
-        `;
+		<div class="info-window-content">
+			<p><strong>Capacidad:</strong> ${item.capacidad}</p>
+			<p><strong>Cota Máxima:</strong> ${item.cotaM}</p>
+			<p><strong>ID:</strong> ${item.id}</p>
+			<p><strong>Número:</strong> ${item.numero}</p>
+			<p><strong>Puntos:</strong> ${item.puntos}</p>
+			<p><strong>Volumen:</strong> ${item.volumenM} m³</p>
+			<p><strong>Coordenadas:</strong> X: ${item.x}, Y: ${item.y}</p>
+			<p>Fecha${this.incidente ? '' : ' del evento'}: ${formattedDate}</p>
+			<a href="https://www.google.com/maps/dir/?api=1&destination=${item.geom.coordinates[0]},${item.geom.coordinates[1]}"
+				target="_blank" class="btn-direcciones">
+				Cómo llegar
+			</a>
+		</div>
+		`;
 
 		return new google.maps.InfoWindow({
-			headerContent: this.incidente ? 'Incidente' : item.title_marcador,
+			headerContent: item.sector,
 			content: infoContent,
 			maxWidth: 400,
 		});
@@ -342,8 +313,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
                 <h5>${this.incidente ? 'Incidente' : item.title_marcador}</h5>
                 <p>Fecha: ${formattedDate}</p>
                 ${
-									item.es_articulo && this.router.url !== `/ver-features/${item._id}`
-										? `<a href="/ver-features/${item._id}" class="btn-ver-articulo">Ver Artículo</a>`
+									item.es_articulo && this.router.url !== `/ver-feature/${item._id}`
+										? `<a href="/ver-feature/${item._id}" class="btn-ver-articulo">Ver Artículo</a>`
 										: ''
 								}
                 <a href="https://www.google.com/maps/dir/?api=1&destination=${item.direccion_geo.latitud},${item.direccion_geo.longitud}" 
@@ -370,8 +341,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	}
 
 	verArticulo(fichaId: string): void {
-		// Redirigir a la página de detalle de la features sectorial como artículo
-		this.router.navigate(['/ver-features', fichaId]);
+		// Redirigir a la página de detalle de la feature sectorial como artículo
+		this.router.navigate(['/ver-feature', fichaId]);
 	}
 
 	initFullscreenControl(): void {
@@ -434,7 +405,6 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 			console.log(e.latLng.lat(), e.latLng.lng());
 		}
 	};
-
 	ngOnDestroy(): void {
 		// Limpia el mapa cuando el componente se destruye
 		if (this.mapCustom) {
