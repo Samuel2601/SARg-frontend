@@ -12,6 +12,7 @@ import {DashboardsRoutingModule} from './dashboard-routing.module';
 import {MapaMostrarFichasComponent} from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 import {UbiTanquesComponent} from './ubi-tanques/ubi-tanques.component';
 import {AreaTanquesComponent} from './area-tanques/area-tanques.component';
+import {UnificadoTanquesComponent} from './unificado-tanques/unificado-tanques.component';
 
 @NgModule({
 	imports: [
@@ -27,6 +28,7 @@ import {AreaTanquesComponent} from './area-tanques/area-tanques.component';
 		MapaMostrarFichasComponent,
 		UbiTanquesComponent,
 		AreaTanquesComponent,
+		UnificadoTanquesComponent,
 	],
 	declarations: [DashboardComponent],
 })
