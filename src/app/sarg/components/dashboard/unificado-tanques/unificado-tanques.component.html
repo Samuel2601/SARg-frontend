@@ -1,15 +1,14 @@
 <app-mapa-mostrar-fichas
-	*ngIf="data.length > 0 && !loading_Ubitanque"
+	*ngIf="data.length > 0 && !loading"
 	[feature]="data"
 	[columns_info]="columnsUbiTanque">
 </app-mapa-mostrar-fichas>
+<p-skeleton
+	*ngIf="loading"
+	width="100%"
+	height="250px" />
 <div>
 	<h2>Areas Tanques</h2>
-
-	<p-skeleton
-		*ngIf="loading_Area"
-		width="100%"
-		height="250px" />
 
 	<div
 		class="p-field"
@@ -131,10 +130,6 @@
 
 <div>
 	<h2>Ubi Tanques</h2>
-	<p-skeleton
-		*ngIf="loading_Ubitanque"
-		width="100%"
-		height="250px" />
 
 	<div
 		class="p-field"

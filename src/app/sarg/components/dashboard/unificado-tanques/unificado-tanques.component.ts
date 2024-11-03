@@ -70,6 +70,9 @@ export class UnificadoTanquesComponent {
 
 	constructor(private ubiTanquesService: UbiTanquesService, private areaTanquesService: AreaTanquesService, private primengConfig: PrimeNGConfig) {}
 	data: any[] = [];
+
+	loading: boolean = true;
+
 	async ngOnInit() {
 		await this.loadDataUbiTanques();
 		await this.loadData_Area();
@@ -86,6 +89,7 @@ export class UnificadoTanquesComponent {
 			.join(',');
 
 		this.loading_Ubitanque = true;
+		this.loading = true;
 		this.ubiTanquesService
 			.findAll(this.page_Ubitanque, this.limit_Ubitanque, this.filter_Ubitanque, this.search_Ubitanque, selectedFields)
 			.subscribe((response: any) => {
@@ -95,6 +99,7 @@ export class UnificadoTanquesComponent {
 				this.totalRecords_Ubitanque = response.total;
 				console.log(this.data_Ubitanque);
 				this.loading_Ubitanque = false;
+				this.loading = false;
 			});
 	}
 
@@ -133,6 +138,7 @@ export class UnificadoTanquesComponent {
 			.join(',');
 
 		this.loading_Area = true;
+		this.loading = true;
 		this.areaTanquesService
 			.findAll(this.page_Area, this.limit_Area, this.filter_Area, this.search_Area, selectedFields)
 			.subscribe(async (response: any) => {
@@ -142,6 +148,7 @@ export class UnificadoTanquesComponent {
 				this.totalRecords_Area = response.total;
 				console.log(this.data_Area);
 				this.loading_Area = false;
+				this.loading = false;
 			});
 	}
 

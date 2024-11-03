@@ -372,7 +372,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 			position: position,
 			map: this.mapCustom,
 			icon: {
-				url: item.icono_marcador || 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png',
+				url: item.icono_marcador || 'https://i.postimg.cc/FHd2yrXM/alfiler.png',
 				scaledSize: this.getMarkerSize(item),
 			},
 		});
@@ -380,7 +380,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 	private getMarkerSize(item: any): google.maps.Size {
 		const isPast = new Date(item.fecha_evento).getTime() < new Date().getTime();
-		const hasCustomIcon = item.icono_marcador && item.icono_marcador !== 'https://i.postimg.cc/QdcR9bnm/puntero-del-mapa.png';
+		const hasCustomIcon = item.icono_marcador && item.icono_marcador !== 'https://i.postimg.cc/FHd2yrXM/alfiler.png';
 
 		if (isPast) return new google.maps.Size(50, 50);
 		if (hasCustomIcon) return new google.maps.Size(80, 80);
