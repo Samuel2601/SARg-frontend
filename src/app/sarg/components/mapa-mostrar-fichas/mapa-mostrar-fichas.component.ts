@@ -271,9 +271,14 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 		// Crear contenido del InfoWindow
 		const infoContent = this.buildInfoContent(item, lng, lat, formattedDate);
+		const columns_headers = this.columns_info.find((element: any) => {
+			if (element.visible && element.selected && element.field != 'id') {
+				return element;
+			}
+		});
 
 		return new google.maps.InfoWindow({
-			headerContent: '(' + item.id + ')' + item.sector || 'Información',
+			headerContent: item[columns_headers.field] || 'Información',
 			content: infoContent,
 			maxWidth: 400,
 		});

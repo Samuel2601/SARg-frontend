@@ -81,6 +81,19 @@
 			dragdrop="true"
 			[responsive]="true"
 			listStyle="height:200px">
+			<ng-template pTemplate="header">
+				<div
+					class="p-d-flex p-ai-center p-jc-between"
+					style="display: flex; justify-content: space-between">
+					<i
+						class="pi pi-eye"
+						style="cursor: pointer"></i>
+					<span class="p-ml-2">Columnas</span>
+					<i
+						class="pi pi-cloud-download"
+						style="cursor: pointer"></i>
+				</div>
+			</ng-template>
 			<ng-template
 				let-column
 				pTemplate="item">
