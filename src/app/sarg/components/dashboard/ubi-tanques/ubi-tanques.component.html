@@ -6,7 +6,13 @@
 		[poligon]="false"
 		key_cat="capacidad"
 		key_cat_label="capacidad"
-		[columns_info]="columns"></app-mapa-mostrar-fichas>
+		[columns_info]="columns">
+	</app-mapa-mostrar-fichas>
+	<p-skeleton
+		*ngIf="loading"
+		width="100%"
+		height="250px" />
+
 	<div
 		class="p-field"
 		style="display: flex; justify-content: space-between">
@@ -83,11 +89,14 @@
 					style="display: flex; justify-content: space-between">
 					<p-checkbox
 						[(ngModel)]="column.visible"
-						binary="true"></p-checkbox>
+						binary="true"
+						[disabled]="column.disabled_visible"></p-checkbox>
 					<span class="p-ml-2">{{ column.header }}</span>
 					<p-checkbox
 						[(ngModel)]="column.selected"
-						binary="true"></p-checkbox>
+						disbl
+						binary="true"
+						[disabled]="column.disabled_selected"></p-checkbox>
 				</div>
 			</ng-template>
 		</p-orderList>

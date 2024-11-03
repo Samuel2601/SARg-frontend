@@ -10,6 +10,8 @@ interface Column {
 	header: string;
 	visible: boolean;
 	selected: boolean;
+	disabled_visible: boolean;
+	disabled_selected: boolean;
 }
 
 @Component({
@@ -28,16 +30,16 @@ export class UbiTanquesComponent {
 	filter: string = '';
 	// Definición de columnas con encabezado, visibilidad y campo
 	columns: Column[] = [
-		{field: 'id', header: 'ID', visible: true, selected: true},
-		{field: 'geom', header: 'Geolocalización', visible: false, selected: true},
-		{field: 'puntos', header: 'Puntos', visible: false, selected: true},
-		{field: 'x', header: 'X', visible: false, selected: true},
-		{field: 'y', header: 'Y', visible: false, selected: true},
-		{field: 'sector', header: 'Sector', visible: true, selected: true},
-		{field: 'cotaM', header: 'Cota M', visible: true, selected: true},
-		{field: 'volumenM', header: 'Volumen M', visible: true, selected: true},
-		{field: 'capacidad', header: 'Capacidad', visible: true, selected: true},
-		{field: 'numero', header: 'Número', visible: true, selected: true},
+		{field: 'id', header: 'ID', visible: true, selected: true, disabled_selected: true, disabled_visible: true},
+		{field: 'geom', header: 'Geolocalización', visible: false, selected: true, disabled_selected: true, disabled_visible: false},
+		{field: 'puntos', header: 'Puntos', visible: false, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'x', header: 'X', visible: false, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'y', header: 'Y', visible: false, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'sector', header: 'Sector', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'cotaM', header: 'Cota M', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'volumenM', header: 'Volumen M', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'capacidad', header: 'Capacidad', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'numero', header: 'Número', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
 	];
 
 	displayColumnDialog: boolean = false; // Controla la visibilidad del diálogo

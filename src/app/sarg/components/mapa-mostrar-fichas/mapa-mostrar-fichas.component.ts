@@ -67,7 +67,6 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 					} else {
 						this.features_arr = [this.feature];
 					}
-					console.log(this.features_arr);
 					await this.getcategorias();
 					await this.marcadoresmapa();
 				} else {
@@ -147,7 +146,6 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 						// Convertir coordenadas de UTM a latitud/longitud utilizando el CRS detectado
 						const [lat, lng] = proj4(crsName, proj4.WGS84, [coordinates[0], coordinates[1]]);
-						console.log('Ubicaciones', lat, lng);
 						const position = new google.maps.LatLng(lng, lat);
 
 						const marker = this.createMarker(position, item);
@@ -299,8 +297,6 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 				}
 			});
 		}
-
-		console.log(this.columns_info);
 
 		// Agregar enlace de Google Maps, si las coordenadas están disponibles
 		if (lat && lng) {
