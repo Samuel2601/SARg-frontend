@@ -170,7 +170,6 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 					// Si es un polígono o un multipolígono, agregar lógica adicional
 					else if (geomType === 'Polygon' || geomType === 'MultiPolygon') {
 						const polys = geomType === 'Polygon' ? [coordinates] : coordinates;
-						console.log(polys);
 						polys.forEach((polygonCoords: any) => {
 							polygonCoords.forEach((ring: any) => {
 								const path = ring.map((coord: any) => {
