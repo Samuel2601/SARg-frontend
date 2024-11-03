@@ -296,8 +296,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		// Convertir coordenadas usando el CRS especificado, si existe
 		const crsName = item.geom?.crs?.properties?.name || 'EPSG:32617'; // Usa 'EPSG:32617' como predeterminado
 		const coordinates = item.geom?.coordinates ? item.geom?.coordinates : coordinates_poligon;
-		let lat = coordinates_poligon.lat,
-			lng = coordinates_poligon.lng;
+		let lat = coordinates_poligon?.lat || null,
+			lng = coordinates_poligon?.lng || null;
 
 		if (coordinates && crsName && !coordinates_poligon) {
 			// Asegurarse de que el CRS esté definido en proj4

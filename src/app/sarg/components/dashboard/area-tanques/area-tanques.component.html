@@ -1,5 +1,5 @@
 <div>
-	<h2>Ubi Tanques</h2>
+	<h2>Areas Tanques</h2>
 	<app-mapa-mostrar-fichas
 		*ngIf="data.length > 0 && !loading"
 		[feature]="data"
@@ -15,7 +15,7 @@
 
 	<div
 		class="p-field"
-		style="display: flex; justify-content: space-between">
+		style="margin-top: 2rem; display: flex; justify-content: space-between">
 		<div style="margin-bottom: 2rem">
 			<label for="search">Buscar:</label>
 			<input
@@ -24,6 +24,7 @@
 				[(ngModel)]="search"
 				(input)="onSearchChange()"
 				pInputText />
+			<label for="search">(Nombre Tanque, Orden, Sector, Capacidad, Número)</label>
 		</div>
 		<div>
 			<button
