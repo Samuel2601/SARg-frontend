@@ -107,116 +107,143 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 	async marcadoresmapa() {
 		try {
-			if (!this.poligon) {
-				const bounds = new google.maps.LatLngBounds();
+			const bounds = new google.maps.LatLngBounds();
 
-				// Limpiar marcadores y grupos existentes
-				this.markers.forEach((marker) => {
-					marker.setMap(null);
-				});
-				this.markers = [];
-				this.markerGroups = [];
+			// Limpiar marcadores y grupos existentes
+			this.markers.forEach((marker) => {
+				marker.setMap(null);
+			});
+			this.markers = [];
+			this.markerGroups = [];
 
-				if (this.markerCluster) {
-					this.markerCluster.clearMarkers();
-				}
+			if (this.markerCluster) {
+				this.markerCluster.clearMarkers();
+			}
 
-				// Agrupar marcadores por posición
-				this.features_arr.forEach((item: any) => {
-					const geomType = item.geom?.type || '';
-					const coordinates = item.geom?.coordinates;
-					const crsName = item.geom?.crs?.properties?.name;
+			// Agrupar marcadores por posición
+			this.features_arr.forEach((item: any) => {
+				const geomType = item.geom?.type || '';
+				const coordinates = item.geom?.coordinates;
+				const crsName = item.geom?.crs?.properties?.name;
 
-					// Verificar si es un punto y tiene coordenadas válidas
-					if (
-						geomType === 'Point' &&
-						coordinates &&
-						(!item[this.key_cat] || this.actividad_select.some((act: any) => act.value === item[this.key_cat]))
-					) {
-						// Definir la proyección en proj4 solo si aún no está definida
-						if (!proj4.defs[crsName]) {
-							// Agregar definiciones de proyecciones conocidas
-							if (!crsName) {
-								proj4.defs('EPSG:32617', '+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs');
-							} else {
-								proj4.defs(crsName, '+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs');
-							}
-						}
-
-						// Convertir coordenadas de UTM a latitud/longitud utilizando el CRS detectado
-						const [lat, lng] = proj4(crsName, proj4.WGS84, [coordinates[0], coordinates[1]]);
-						const position = new google.maps.LatLng(lng, lat);
-
-						const marker = this.createMarker(position, item);
-						const infoWindow = this.createInfoWindow(item);
-
-						// Buscar grupo cercano existente o crear uno nuevo
-						let nearestGroup = this.findNearestGroup(position);
-
-						if (nearestGroup) {
-							nearestGroup.markers.push({marker, item, infoWindow});
-							this.updateGroupCenter(nearestGroup);
+				// Verificar si es un punto y tiene coordenadas válidas
+				if (
+					geomType === 'Point' &&
+					coordinates &&
+					(!item[this.key_cat] || this.actividad_select.some((act: any) => act.value === item[this.key_cat]))
+				) {
+					// Definir la proyección en proj4 solo si aún no está definida
+					if (!proj4.defs[crsName]) {
+						// Agregar definiciones de proyecciones conocidas
+						if (!crsName) {
+							proj4.defs('EPSG:32617', '+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs');
 						} else {
-							const newGroup = {
-								position: position,
-								markers: [{marker, item, infoWindow}],
-							};
-							this.markerGroups.push(newGroup);
+							proj4.defs(crsName, '+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs');
 						}
-
-						this.markers.push(marker);
-						bounds.extend(position);
 					}
-					// Si es un polígono o un multipolígono, agregar lógica adicional
-					else if (geomType === 'Polygon' || geomType === 'MultiPolygon') {
-						const polys = geomType === 'Polygon' ? [coordinates] : coordinates;
-						polys.forEach((polygonCoords: any) => {
-							polygonCoords.forEach((ring: any) => {
-								const path = ring.map((coord: any) => {
-									// Convertir coordenadas de UTM a latitud/longitud
-									const [lat, lng] = proj4(crsName, proj4.WGS84, [coord[0], coord[1]]);
-									return new google.maps.LatLng(lng, lat);
-								});
 
-								const polygon = new google.maps.Polygon({
-									paths: path,
-									strokeColor: '#FF0000',
-									strokeOpacity: 0.8,
-									strokeWeight: 2,
-									fillColor: '#FF0000',
-									fillOpacity: 0.35,
-								});
+					// Convertir coordenadas de UTM a latitud/longitud utilizando el CRS detectado
+					const [lat, lng] = proj4(crsName, proj4.WGS84, [coordinates[0], coordinates[1]]);
+					const position = new google.maps.LatLng(lng, lat);
 
-								polygon.setMap(this.mapCustom);
+					const marker = this.createMarker(position, item);
+					const infoWindow = this.createInfoWindow(item);
+
+					// Buscar grupo cercano existente o crear uno nuevo
+					let nearestGroup = this.findNearestGroup(position);
+
+					if (nearestGroup) {
+						nearestGroup.markers.push({marker, item, infoWindow});
+						this.updateGroupCenter(nearestGroup);
+					} else {
+						const newGroup = {
+							position: position,
+							markers: [{marker, item, infoWindow}],
+						};
+						this.markerGroups.push(newGroup);
+					}
+
+					this.markers.push(marker);
+					bounds.extend(position);
+				}
+				// Si es un polígono o un multipolígono, agregar lógica adicional
+				else if (geomType === 'Polygon' || geomType === 'MultiPolygon') {
+					const polys = geomType === 'Polygon' ? [coordinates] : coordinates;
+					polys.forEach((polygonCoords: any) => {
+						polygonCoords.forEach((ring: any) => {
+							const path = ring.map((coord: any) => {
+								// Convertir coordenadas de UTM a latitud/longitud
+								const [lat, lng] = proj4(crsName, proj4.WGS84, [...coord]);
+								const position = new google.maps.LatLng(lng, lat);
+								bounds.extend(position);
+								return position;
+							});
+
+							// Obtener los valores de las variables CSS
+							const rootStyle = getComputedStyle(document.documentElement);
+							const primaryColor = rootStyle.getPropertyValue('--highlight-text-color').trim();
+							const surfaceColor = rootStyle.getPropertyValue('--text-color').trim();
+
+							// Crear el polígono
+							const polygon = new google.maps.Polygon({
+								paths: path,
+								strokeColor: surfaceColor, // Usar el color primario
+								strokeOpacity: 0.8,
+								strokeWeight: 2,
+								fillColor: primaryColor, // Usar el color de superficie
+								fillOpacity: 0.35,
+							});
+							polygon.setMap(this.mapCustom);
+
+							// Escuchar el evento de clic en el polígono
+							google.maps.event.addListener(polygon, 'click', (event) => {
+								// Cerrar el InfoWindow anterior si existe
+								if (this.activeInfoWindow) {
+									this.activeInfoWindow.close();
+								}
+
+								// event.latLng contiene la posición donde se hizo clic
+								const clickPosition = {
+									lat: event.latLng.lat(),
+									lng: event.latLng.lng(),
+								};
+
+								// Crear y abrir un nuevo InfoWindow
+								this.activeInfoWindow = this.createInfoWindow(item, clickPosition);
+								this.activeInfoWindow.setPosition(clickPosition);
+								this.activeInfoWindow.open(this.mapCustom);
 							});
 						});
+					});
+				}
+			});
+
+			// Configurar listeners para cada grupo
+			this.markerGroups.forEach((group) => {
+				group.markers.forEach(({marker}) => {
+					if (group.markers.length > 1) {
+						marker.setPosition(group.position);
 					}
-				});
 
-				// Configurar listeners para cada grupo
-				this.markerGroups.forEach((group) => {
-					group.markers.forEach(({marker}) => {
+					marker.addListener('click', () => {
 						if (group.markers.length > 1) {
-							marker.setPosition(group.position);
+							this.handleGroupClick(group);
+						} else {
+							this.setupSingleMarkerListeners(marker, group.markers[0].infoWindow, group.position);
 						}
-
-						marker.addListener('click', () => {
-							if (group.markers.length > 1) {
-								this.handleGroupClick(group);
-							} else {
-								this.setupSingleMarkerListeners(marker, group.markers[0].infoWindow, group.position);
-							}
-						});
 					});
 				});
+			});
 
-				if (this.mapCustom) {
+			if (this.mapCustom) {
+				if (this.markers.length > 0) {
 					this.markerCluster = new MarkerClusterer({
 						map: this.mapCustom,
 						markers: this.markers,
 					});
-					this.mapCustom.fitBounds(bounds);
 				}
+
+				this.mapCustom.fitBounds(bounds);
 			}
 		} catch (error) {
 			console.error(error);
@@ -265,13 +292,14 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		return (degrees * Math.PI) / 180;
 	}
 
-	private createInfoWindow(item: any): google.maps.InfoWindow {
+	private createInfoWindow(item: any, coordinates_poligon?: {lat: number; lng: number}): google.maps.InfoWindow {
 		// Convertir coordenadas usando el CRS especificado, si existe
 		const crsName = item.geom?.crs?.properties?.name || 'EPSG:32617'; // Usa 'EPSG:32617' como predeterminado
-		const coordinates = item.geom?.coordinates;
-		let lat, lng;
+		const coordinates = item.geom?.coordinates ? item.geom?.coordinates : coordinates_poligon;
+		let lat = coordinates_poligon.lat,
+			lng = coordinates_poligon.lng;
 
-		if (coordinates && crsName) {
+		if (coordinates && crsName && !coordinates_poligon) {
 			// Asegurarse de que el CRS esté definido en proj4
 			if (!proj4.defs[crsName]) {
 				// Definir el CRS en proj4 (si es necesario)
@@ -285,11 +313,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 			[lat, lng] = proj4(crsName, proj4.WGS84, [coordinates[0], coordinates[1]]);
 		}
 
-		// Formatear fecha del evento
-		const formattedDate = this.datePipe.transform(this.incidente ? item.createdAt : item.fecha_evento, 'short');
-
 		// Crear contenido del InfoWindow
-		const infoContent = this.buildInfoContent(item, lng, lat, formattedDate);
+		const infoContent = this.buildInfoContent(item, lng, lat);
 		const columns_headers = this.columns_info.find((element: any) => {
 			if (element.visible && element.selected && element.field != 'id') {
 				return element;
@@ -304,7 +329,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	}
 
 	// Método auxiliar para construir el contenido de InfoWindow dinámicamente
-	private buildInfoContent(item: any, lat: number, lng: number, formattedDate: string): string {
+	private buildInfoContent(item: any, lat: number, lng: number): string {
 		let infoContent = `<div class="info-window-content">`;
 		if (this.columns_info.length > 0) {
 			this.columns_info.forEach((element: any) => {
@@ -321,9 +346,9 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 				}
 			});
 		}
-
+		const geomType = item.geom?.type || '';
 		// Agregar enlace de Google Maps, si las coordenadas están disponibles
-		if (lat && lng) {
+		if (lat && lng && geomType === 'Point') {
 			infoContent += `
 			<a href="https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}"
 				target="_blank" class="btn-direcciones">
