@@ -11,6 +11,7 @@ import {PanelMenuModule} from 'primeng/panelmenu';
 import {DashboardsRoutingModule} from './dashboard-routing.module';
 import {MapaMostrarFichasComponent} from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 import {UbiTanquesComponent} from './ubi-tanques/ubi-tanques.component';
+import {AreaTanquesComponent} from './area-tanques/area-tanques.component';
 
 @NgModule({
 	imports: [
@@ -25,6 +26,7 @@ import {UbiTanquesComponent} from './ubi-tanques/ubi-tanques.component';
 		DashboardsRoutingModule,
 		MapaMostrarFichasComponent,
 		UbiTanquesComponent,
+		AreaTanquesComponent,
 	],
 	declarations: [DashboardComponent],
 })

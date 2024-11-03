@@ -141,7 +141,6 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 							} else {
 								proj4.defs(crsName, '+proj=utm +zone=17 +datum=WGS84 +units=m +no_defs');
 							}
-							// Aquí puedes agregar más definiciones para otros CRS
 						}
 
 						// Convertir coordenadas de UTM a latitud/longitud utilizando el CRS detectado
@@ -168,9 +167,30 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 						this.markers.push(marker);
 						bounds.extend(position);
 					}
-					// Si es un polígono, puedes agregar lógica adicional aquí
-					else if (geomType === 'Polygon') {
-						// Lógica específica para manejar polígonos
+					// Si es un polígono o un multipolígono, agregar lógica adicional
+					else if (geomType === 'Polygon' || geomType === 'MultiPolygon') {
+						const polys = geomType === 'Polygon' ? [coordinates] : coordinates;
+						console.log(polys);
+						polys.forEach((polygonCoords: any) => {
+							polygonCoords.forEach((ring: any) => {
+								const path = ring.map((coord: any) => {
+									// Convertir coordenadas de UTM a latitud/longitud
+									const [lat, lng] = proj4(crsName, proj4.WGS84, [coord[0], coord[1]]);
+									return new google.maps.LatLng(lng, lat);
+								});
+
+								const polygon = new google.maps.Polygon({
+									paths: path,
+									strokeColor: '#FF0000',
+									strokeOpacity: 0.8,
+									strokeWeight: 2,
+									fillColor: '#FF0000',
+									fillOpacity: 0.35,
+								});
+
+								polygon.setMap(this.mapCustom);
+							});
+						});
 					}
 				});
 
