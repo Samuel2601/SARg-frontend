@@ -1,0 +1,141 @@
+<div>
+	<h2>Geo Predio General</h2>
+	<ng-container *ngIf="viewChildBoolean">
+		<app-mapa-mostrar-fichas
+			*ngIf="data.length > 0 && !loading"
+			[feature]="data"
+			[polygon]="false"
+			key_cat="capacidad"
+			key_cat_label="capacidad"
+			[columns_info]="columns">
+		</app-mapa-mostrar-fichas>
+		<p-skeleton
+			*ngIf="loading"
+			width="100%"
+			height="250px" />
+	</ng-container>
+
+	<div
+		class="p-field"
+		style="margin-top: 2rem; display: flex; justify-content: space-between">
+		<div style="margin-bottom: 2rem">
+			<label for="search">Buscar:</label>
+			<input
+				id="search"
+				type="text"
+				[(ngModel)]="search"
+				(input)="onSearchChange()"
+				pInputText
+				pTooltip="Buscar por: Punto, Sector, Capacidad, Número"
+				tooltipPosition="right" />
+		</div>
+		<div>
+			<button
+				pButton
+				type="button"
+				label="Configurar Columnas"
+				icon="pi pi-cog"
+				(click)="openColumnDialog()"></button>
+		</div>
+	</div>
+
+	<p-table
+		[value]="data"
+		[rows]="limit"
+		(onPage)="onPageChange($event)"
+		scrollHeight="500px">
+		<ng-template pTemplate="header">
+			<tr>
+				<!-- Mostrar solo columnas visibles -->
+				<th
+					*ngFor="let col of columns"
+					[hidden]="!col.visible">
+					{{ col.header }}
+				</th>
+			</tr>
+		</ng-template>
+		<ng-template
+			pTemplate="body"
+			let-tanque>
+			<tr>
+				<!-- Mostrar solo valores de columnas visibles -->
+				<td
+					*ngFor="let col of columns"
+					[hidden]="!col.visible">
+					{{ tanque[col.field] }}
+				</td>
+			</tr>
+		</ng-template>
+	</p-table>
+
+	<p-paginator
+		[rows]="limit"
+		[first]="first"
+		[totalRecords]="totalRecords"
+		[rowsPerPageOptions]="rowsOptions"
+		(onPageChange)="onPageChange($event)"
+		[showCurrentPageReport]="true"
+		[showPageLinks]="false"
+		[showJumpToPageDropdown]="false"
+		currentPageReportTemplate="Viendo {first} al {last} de {totalRecords}">
+	</p-paginator>
+
+	<!-- Dialog para la configuración de columnas -->
+	<p-dialog
+		[(visible)]="displayColumnDialog"
+		header="Configurar Columnas"
+		[style]="{width: '30vw'}"
+		modal="true">
+		<p-orderList
+			[value]="columnOrderList"
+			dragdrop="true"
+			[responsive]="true"
+			listStyle="height:200px">
+			<ng-template pTemplate="header">
+				<div
+					class="p-d-flex p-ai-center p-jc-between"
+					style="display: flex; justify-content: space-between">
+					<i
+						class="pi pi-eye"
+						style="cursor: pointer"></i>
+					<span class="p-ml-2">Columnas</span>
+					<i
+						class="pi pi-cloud-download"
+						style="cursor: pointer"></i>
+				</div>
+			</ng-template>
+			<ng-template
+				let-column
+				pTemplate="item">
+				<div
+					class="p-d-flex p-ai-center"
+					style="display: flex; justify-content: space-between">
+					<p-checkbox
+						[(ngModel)]="column.visible"
+						binary="true"
+						[disabled]="column.disabled_visible"></p-checkbox>
+					<span class="p-ml-2">{{ column.header }}</span>
+					<p-checkbox
+						[(ngModel)]="column.selected"
+						disbl
+						binary="true"
+						[disabled]="column.disabled_selected"></p-checkbox>
+				</div>
+			</ng-template>
+		</p-orderList>
+		<p-footer>
+			<button
+				pButton
+				type="button"
+				label="Guardar"
+				icon="pi pi-check"
+				(click)="saveColumnSettings()"></button>
+			<button
+				pButton
+				type="button"
+				label="Cancelar"
+				icon="pi pi-times"
+				(click)="displayColumnDialog = false"></button>
+		</p-footer>
+	</p-dialog>
+</div>

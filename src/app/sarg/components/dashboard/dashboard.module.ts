@@ -13,6 +13,9 @@ import {MapaMostrarFichasComponent} from '../mapa-mostrar-fichas/mapa-mostrar-fi
 import {UbiTanquesComponent} from './ubi-tanques/ubi-tanques.component';
 import {AreaTanquesComponent} from './area-tanques/area-tanques.component';
 import {UnificadoTanquesComponent} from './unificado-tanques/unificado-tanques.component';
+import {LineaConduccionComponent} from './linea-conduccion/linea-conduccion.component';
+import {TubWincheleComponent} from './tub-winchele/tub-winchele.component';
+import {GeoPredioGeneralComponent} from './geo-predio-general/geo-predio-general.component';
 
 @NgModule({
 	imports: [
@@ -29,6 +32,9 @@ import {UnificadoTanquesComponent} from './unificado-tanques/unificado-tanques.c
 		UbiTanquesComponent,
 		AreaTanquesComponent,
 		UnificadoTanquesComponent,
+		LineaConduccionComponent,
+		TubWincheleComponent,
+		GeoPredioGeneralComponent,
 	],
 	declarations: [DashboardComponent],
 })

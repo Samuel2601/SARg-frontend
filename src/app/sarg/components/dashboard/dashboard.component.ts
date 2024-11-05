@@ -8,6 +8,9 @@ import {GeoFeature} from '../../api/poligon';
 import {UbiTanquesComponent} from './ubi-tanques/ubi-tanques.component';
 import {AreaTanquesComponent} from './area-tanques/area-tanques.component';
 import {MapaMostrarFichasComponent} from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
+import {LineaConduccionComponent} from './linea-conduccion/linea-conduccion.component';
+import {TubWincheleComponent} from './tub-winchele/tub-winchele.component';
+import {GeoPredioGeneralComponent} from './geo-predio-general/geo-predio-general.component';
 
 @Component({
 	templateUrl: './dashboard.component.html',
@@ -104,10 +107,16 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 	ubiTanquesData: any[] = [];
 	areaTanquesData: any[] = [];
+	lineaConduccionData: any[] = [];
+	tubWincheleData: any[] = [];
+	geoPredioGeneralData: any[] = [];
 
 	@ViewChild(UbiTanquesComponent) ubiTanquesComponent!: UbiTanquesComponent;
 	@ViewChild(AreaTanquesComponent) areaTanquesComponent!: AreaTanquesComponent;
+	@ViewChild(LineaConduccionComponent) lineaConduccionComponent!: LineaConduccionComponent;
+	@ViewChild(TubWincheleComponent) tubWincheleComponent!: TubWincheleComponent;
 	@ViewChild(MapaMostrarFichasComponent) mapComponent!: MapaMostrarFichasComponent;
+	@ViewChild(GeoPredioGeneralComponent) geoPredioGeneralComponent!: GeoPredioGeneralComponent;
 
 	// Método que recoge los datos de los subcomponentes
 	loading: boolean = true;
@@ -117,13 +126,13 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	collectData() {
 		this.ubiTanquesData = this.ubiTanquesComponent.data;
 		this.areaTanquesData = this.areaTanquesComponent.data;
-
+		this.lineaConduccionData = this.lineaConduccionComponent.data;
 		this.onMapDataUpdated();
 	}
 	onMapDataUpdated() {
 		this.loading = true;
 		// Enviar los datos recogidos al componente de mapa
-		this.mapComponent.initFeature([...this.ubiTanquesData, ...this.areaTanquesData]);
+		this.mapComponent.initFeature([...this.ubiTanquesData, ...this.areaTanquesData, ...this.lineaConduccionData, ...this.tubWincheleData]);
 		this.loading = false;
 	}
 
@@ -131,14 +140,33 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	onUbiTanquesDataUpdated() {
 		this.ubiTanquesData = [];
 		this.ubiTanquesData = this.ubiTanquesComponent.data;
-		console.log(this.ubiTanquesData, this.areaTanquesData);
+		console.log('UBI Tanques', this.ubiTanquesData);
 		this.onMapDataUpdated();
 	}
 
 	onAreaTanquesDataUpdated() {
 		this.areaTanquesData = [];
 		this.areaTanquesData = this.areaTanquesComponent.data;
-		console.log(this.ubiTanquesData, this.areaTanquesData);
+		console.log('Area Tanques', this.areaTanquesData);
+		this.onMapDataUpdated();
+	}
+
+	onLineaConduccionDataUpdated() {
+		this.lineaConduccionData = [];
+		this.lineaConduccionData = this.lineaConduccionComponent.data;
+		console.log('linea conduccion', this.lineaConduccionData);
+		this.onMapDataUpdated();
+	}
+	onTubWincheleDataUpdated() {
+		this.tubWincheleData = [];
+		this.tubWincheleData = this.tubWincheleComponent.data;
+		console.log('tub winchele', this.tubWincheleData);
+		this.onMapDataUpdated();
+	}
+	onGeoPredioGeneralDataUpdated() {
+		this.geoPredioGeneralData = [];
+		this.geoPredioGeneralData = this.geoPredioGeneralComponent.data;
+		console.log('geo predio general', this.geoPredioGeneralData);
 		this.onMapDataUpdated();
 	}
 }

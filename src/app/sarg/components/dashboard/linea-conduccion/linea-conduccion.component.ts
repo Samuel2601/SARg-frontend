@@ -1,10 +1,8 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {PrimeNGConfig} from 'primeng/api';
 import {ImportsModule} from 'src/app/sarg/service/import';
-import {AreaTanques, AreaTanquesService} from 'src/app/sarg/service/area-tanques.service';
 import {MapaMostrarFichasComponent} from '../../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
-import {GeoService} from 'src/app/sarg/service/geo.service';
-
+import {LineaConduccionService} from 'src/app/sarg/service/linea-conduccion.service';
+import {PrimeNGConfig} from 'primeng/api';
 interface Column {
 	field: string;
 	header: string;
@@ -13,40 +11,37 @@ interface Column {
 	disabled_visible: boolean;
 	disabled_selected: boolean;
 }
-
 @Component({
-	selector: 'app-area-tanques',
+	selector: 'app-linea-conduccion',
 	standalone: true,
 	imports: [ImportsModule, MapaMostrarFichasComponent],
-	templateUrl: './area-tanques.component.html',
-	styleUrls: ['./area-tanques.component.scss'],
+	templateUrl: './linea-conduccion.component.html',
+	styleUrl: './linea-conduccion.component.scss',
 })
-export class AreaTanquesComponent {
+export class LineaConduccionComponent {
 	@Input() viewChildBoolean: boolean = true;
 
-	data: AreaTanques[] = [];
+	data: any[] = [];
 	totalRecords: number = 0;
 	page: number = 1;
-	first: number = 0;
 	limit: number = 10;
 	search: string = '';
 	filter: string = '';
-
 	// Definición de columnas con encabezado, visibilidad y campo
 	columns: Column[] = [
 		{field: 'id', header: 'ID', visible: true, selected: true, disabled_selected: true, disabled_visible: true},
 		{field: 'geom', header: 'Geolocalización', visible: false, selected: true, disabled_selected: true, disabled_visible: false},
-		{field: 'nomTanque', header: 'Nombre del Tanque', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
-		{field: 'orden', header: 'Orden', visible: false, selected: false, disabled_selected: false, disabled_visible: false},
-		{field: 'sector', header: 'Sector', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
-		{field: 'capacidad', header: 'Capacidad', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
-		{field: 'numero', header: 'Número', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'fid', header: 'FID', visible: false, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'diMetro', header: 'Diámetro', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'descripci', header: 'Descripción', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
+		{field: 'long', header: 'Longitud', visible: true, selected: true, disabled_selected: false, disabled_visible: false},
 	];
 
 	displayColumnDialog: boolean = false; // Controla la visibilidad del diálogo
 	columnOrderList: Column[] = [...this.columns]; // Crea una copia para la configuración de columnas
+	first: number = 0;
 
-	constructor(private areaTanquesService: AreaTanquesService, private geoService: GeoService, private primengConfig: PrimeNGConfig) {}
+	constructor(private lineaConduccionService: LineaConduccionService, private primengConfig: PrimeNGConfig) {}
 
 	ngOnInit() {
 		this.loadData();
@@ -62,7 +57,7 @@ export class AreaTanquesComponent {
 			.join(',');
 
 		this.loading = true;
-		this.areaTanquesService.findAll(this.page, this.limit, this.filter, this.search, selectedFields).subscribe((response: any) => {
+		this.lineaConduccionService.findAll(this.page, this.limit, this.filter, this.search, selectedFields).subscribe((response: any) => {
 			this.data = response.data;
 			this.notifyParent();
 			this.totalRecords = response.total;
@@ -84,7 +79,6 @@ export class AreaTanquesComponent {
 		this.rowsOptions.push(this.totalRecords); // Asegúrate de incluir totalRecords
 		this.rowsOptions = Array.from(new Set(this.rowsOptions)); // Elimina duplicados
 	}
-
 	onSearchChange() {
 		this.page = 1; // Reset to first page on search
 		this.loadData();

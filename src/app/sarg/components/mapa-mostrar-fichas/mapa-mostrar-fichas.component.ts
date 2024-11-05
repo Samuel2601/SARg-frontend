@@ -42,6 +42,31 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	async ngOnInit() {
 		await this.initMap();
 	}
+	mapStyles: google.maps.MapTypeStyle[] = [
+		{
+			featureType: 'poi',
+			stylers: [{visibility: 'off'}], // Oculta puntos de interés
+		},
+		{
+			featureType: 'transit',
+			stylers: [{visibility: 'off'}], // Oculta transporte público
+		},
+		{
+			featureType: 'road',
+			elementType: 'geometry',
+			stylers: [{visibility: 'on'}], // Mantiene la geometría de las carreteras
+		},
+		{
+			featureType: 'road',
+			elementType: 'labels',
+			stylers: [{visibility: 'on'}], // Mantiene las etiquetas de las carreteras
+		},
+		{
+			featureType: 'administrative',
+			elementType: 'labels',
+			stylers: [{visibility: 'off'}], // Oculta etiquetas administrativas
+		},
+	];
 
 	async initMap() {
 		this.googlemaps.getLoader().then(() => {
@@ -56,6 +81,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 					position: google.maps.ControlPosition.LEFT_BOTTOM,
 				},
 				gestureHandling: 'greedy', //'cooperative', // Control de gestos
+				styles: this.mapStyles, // Aplica el estilo personalizado
 			});
 			this.initFullscreenControl();
 			this.initFeature(this.feature);
@@ -103,6 +129,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	private markerCluster: MarkerClusterer | undefined;
 	private readonly GROUPING_RADIUS_METERS = 20; // Radio de agrupación en metros
 	private polygons: google.maps.Polygon[] = []; // Array para almacenar los polígonos
+	private polylines: google.maps.Polyline[] = [];
+
 	// Método para limpiar todos los polígonos del mapa
 	clearPolygons() {
 		this.polygons.forEach((polygon) => {
@@ -110,6 +138,14 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		});
 		this.polygons = []; // Vacía el array de polígonos
 	}
+	// Método para limpiar todos los polígonos del mapa
+	clearPolylines() {
+		this.polylines.forEach((polyline) => {
+			polyline.setMap(null); // Elimina la polilínea del mapa
+		});
+		this.polylines = []; // Vacía el array de polilíneas
+	}
+
 	async marcadoresmapa() {
 		try {
 			const bounds = new google.maps.LatLngBounds();
@@ -127,6 +163,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 			// Primero, borrar los polígonos existentes
 			this.clearPolygons();
+			this.clearPolylines();
 
 			// Agrupar marcadores por posición
 			this.features_arr.forEach((item: any) => {
@@ -224,6 +261,51 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 							});
 						});
 					});
+				} else if (geomType === 'MultiLineString') {
+					// MultiLineString contiene múltiples líneas
+					coordinates.forEach((lineString: any) => {
+						const path = lineString.map((coord: any) => {
+							// Convertir coordenadas de UTM a latitud/longitud
+							const [lat, lng] = proj4(crsName, proj4.WGS84, [...coord]);
+							const position = new google.maps.LatLng(lng, lat);
+							bounds.extend(position);
+							return position;
+						});
+
+						// Obtener los valores de las variables CSS
+						const rootStyle = getComputedStyle(document.documentElement);
+						const primaryColor = rootStyle.getPropertyValue('--highlight-text-color').trim();
+						const surfaceColor = rootStyle.getPropertyValue('--text-color').trim();
+
+						// Crear la polilínea
+						const polyline = new google.maps.Polyline({
+							path: path,
+							strokeColor: primaryColor,
+							strokeOpacity: 0.8,
+							strokeWeight: 3, // Puedes ajustar el grosor de la línea aquí
+						});
+
+						polyline.setMap(this.mapCustom); // Agregar la polilínea al mapa
+						this.polylines.push(polyline); // Guardar la polilínea en el array (si prefieres un array separado, usa otro)
+
+						// Escuchar el evento de clic en la polilínea
+						google.maps.event.addListener(polyline, 'click', (event) => {
+							// Cerrar el InfoWindow anterior si existe
+							if (this.activeInfoWindow) {
+								this.activeInfoWindow.close();
+							}
+
+							const clickPosition = {
+								lat: event.latLng.lat(),
+								lng: event.latLng.lng(),
+							};
+
+							// Crear y abrir un nuevo InfoWindow
+							this.activeInfoWindow = this.createInfoWindow(item, clickPosition);
+							this.activeInfoWindow.setPosition(clickPosition);
+							this.activeInfoWindow.open(this.mapCustom);
+						});
+					});
 				}
 			});
 
@@ -253,6 +335,29 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 				}
 
 				this.mapCustom.fitBounds(bounds);
+
+				// Agregar el listener de zoom
+				google.maps.event.addListener(this.mapCustom, 'zoom_changed', () => {
+					const zoomLevel = this.mapCustom.getZoom();
+
+					// Controlar la visibilidad de los polígonos
+					/*this.polygons.forEach((polygon) => {
+						if (zoomLevel <= 15) {
+							polygon.setMap(this.mapCustom); // Mostrar en zoom lejano
+						} else {
+							polygon.setMap(null); // Ocultar en zoom cercano
+						}
+					});*/
+
+					// Controlar la visibilidad de las líneas
+					this.polylines.forEach((polyline) => {
+						if (zoomLevel > 14) {
+							polyline.setMap(this.mapCustom); // Mostrar en zoom cercano
+						} else {
+							polyline.setMap(null); // Ocultar en zoom lejano
+						}
+					});
+				});
 			}
 		} catch (error) {
 			console.error(error);
