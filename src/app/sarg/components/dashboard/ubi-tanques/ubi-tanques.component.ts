@@ -68,6 +68,7 @@ export class UbiTanquesComponent {
 			this.data = response.data;
 			this.notifyParent();
 			this.totalRecords = response.total;
+			this.updateRowsOptions();
 			this.loading = false;
 		});
 	}
@@ -77,6 +78,14 @@ export class UbiTanquesComponent {
 		}
 	}
 
+	options: number[] = [5, 10, 20, 100, 1000];
+	rowsOptions: number[] = []; // Para almacenar las opciones a mostrar
+	// Método para actualizar las opciones de filas
+	updateRowsOptions() {
+		this.rowsOptions = this.options.filter((option) => option <= this.totalRecords);
+		this.rowsOptions.push(this.totalRecords); // Asegúrate de incluir totalRecords
+		this.rowsOptions = Array.from(new Set(this.rowsOptions)); // Elimina duplicados
+	}
 	onSearchChange() {
 		this.page = 1; // Reset to first page on search
 		this.loadData();

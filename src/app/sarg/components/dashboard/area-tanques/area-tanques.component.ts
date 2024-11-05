@@ -28,7 +28,7 @@ export class AreaTanquesComponent {
 	totalRecords: number = 0;
 	page: number = 1;
 	first: number = 0;
-	limit: number = 5;
+	limit: number = 10;
 	search: string = '';
 	filter: string = '';
 
@@ -67,6 +67,7 @@ export class AreaTanquesComponent {
 			this.data = response.data;
 			this.notifyParent();
 			this.totalRecords = response.total;
+			this.updateRowsOptions();
 			this.loading = false;
 		});
 	}
@@ -74,6 +75,15 @@ export class AreaTanquesComponent {
 		if (this.dataUpdated.observers.length > 0) {
 			this.dataUpdated.emit(); // Solo se emite si alguien está escuchando
 		}
+	}
+
+	options: number[] = [5, 10, 20, 100, 1000];
+	rowsOptions: number[] = []; // Para almacenar las opciones a mostrar
+	// Método para actualizar las opciones de filas
+	updateRowsOptions() {
+		this.rowsOptions = this.options.filter((option) => option <= this.totalRecords);
+		this.rowsOptions.push(this.totalRecords); // Asegúrate de incluir totalRecords
+		this.rowsOptions = Array.from(new Set(this.rowsOptions)); // Elimina duplicados
 	}
 
 	onSearchChange() {
