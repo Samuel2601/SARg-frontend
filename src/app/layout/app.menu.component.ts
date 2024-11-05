@@ -22,6 +22,9 @@ export class AppMenuComponent implements OnInit {
 				items: [
 					{label: 'Ubi Tanques', icon: 'pi pi-fw pi-map-marker', routerLink: ['/ubi-tanques']},
 					{label: 'Area Tanques', icon: 'pi pi-fw pi-clone', routerLink: ['/area-tanques']},
+					{label: 'Predios', icon: 'pi pi-fw pi-clone', routerLink: ['/geo-predio-general']},
+					{label: 'Línea de Conducción', icon: 'pi pi-fw pi-map', routerLink: ['/linea-conduccion']},
+					{label: 'Tuberái de Winchele', icon: 'pi pi-fw pi-map', routerLink: ['/tub-winchele']},
 				],
 			},
 			/*{

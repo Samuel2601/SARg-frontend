@@ -131,39 +131,41 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	private polygons: google.maps.Polygon[] = []; // Array para almacenar los polígonos
 	private polylines: google.maps.Polyline[] = [];
 
+	async clearAll() {
+		this.clearPolygons();
+		this.clearPolylines();
+		this.clearMarkerClusterer();
+	}
 	// Método para limpiar todos los polígonos del mapa
-	clearPolygons() {
+	async clearPolygons() {
 		this.polygons.forEach((polygon) => {
 			polygon.setMap(null); // Elimina el polígono del mapa
 		});
 		this.polygons = []; // Vacía el array de polígonos
 	}
 	// Método para limpiar todos los polígonos del mapa
-	clearPolylines() {
+	async clearPolylines() {
 		this.polylines.forEach((polyline) => {
 			polyline.setMap(null); // Elimina la polilínea del mapa
 		});
 		this.polylines = []; // Vacía el array de polilíneas
 	}
+	async clearMarkerClusterer() {
+		// Limpiar marcadores y grupos existentes
+		this.markers.forEach((marker) => {
+			marker.setMap(null);
+		});
+		this.markers = [];
+		this.markerGroups = [];
+
+		if (this.markerCluster) {
+			this.markerCluster.clearMarkers();
+		}
+	}
 
 	async marcadoresmapa() {
 		try {
 			const bounds = new google.maps.LatLngBounds();
-
-			// Limpiar marcadores y grupos existentes
-			this.markers.forEach((marker) => {
-				marker.setMap(null);
-			});
-			this.markers = [];
-			this.markerGroups = [];
-
-			if (this.markerCluster) {
-				this.markerCluster.clearMarkers();
-			}
-
-			// Primero, borrar los polígonos existentes
-			this.clearPolygons();
-			this.clearPolylines();
 
 			// Agrupar marcadores por posición
 			this.features_arr.forEach((item: any) => {

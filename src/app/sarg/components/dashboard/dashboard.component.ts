@@ -129,10 +129,17 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 		this.lineaConduccionData = this.lineaConduccionComponent.data;
 		this.onMapDataUpdated();
 	}
-	onMapDataUpdated() {
+	async onMapDataUpdated() {
 		this.loading = true;
 		// Enviar los datos recogidos al componente de mapa
-		this.mapComponent.initFeature([...this.ubiTanquesData, ...this.areaTanquesData, ...this.lineaConduccionData, ...this.tubWincheleData]);
+		await this.mapComponent.clearAll();
+		this.mapComponent.initFeature([
+			...this.ubiTanquesData,
+			...this.areaTanquesData,
+			...this.lineaConduccionData,
+			...this.tubWincheleData,
+			...this.geoPredioGeneralData,
+		]);
 		this.loading = false;
 	}
 

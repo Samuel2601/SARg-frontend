@@ -83,12 +83,14 @@ export class GeoPredioGeneralComponent {
 
 		this.loading = true;
 		this.geoPredioGeneralService.findAll(this.page, this.limit, this.filter, this.search, selectedFields).subscribe((response: any) => {
-			// Transformar los datos para renombrar 'poligono' a 'geom'
-			this.data = response.data.map((item: any) => ({
-				...item,
-				geom: item.poligono, // Renombrar 'poligono' a 'geom'
-				// Otras propiedades del objeto pueden ser añadidas aquí si es necesario
-			}));
+			// Transformar los datos para renombrar 'poligono' a 'geom' y eliminar 'poligono'
+			this.data = response.data.map((item: any) => {
+				const {poligono, ...rest} = item; // Desestructuración para extraer 'poligono' y mantener el resto
+				return {
+					...rest,
+					geom: poligono, // Renombrar 'poligono' a 'geom'
+				};
+			});
 
 			this.notifyParent();
 			this.totalRecords = response.total;
@@ -103,7 +105,7 @@ export class GeoPredioGeneralComponent {
 		}
 	}
 
-	options: number[] = [5, 10, 20, 100, 1000];
+	options: number[] = [5, 10, 20, 100, 1000, 5000, 10000, 15000];
 	rowsOptions: number[] = [];
 
 	updateRowsOptions() {
