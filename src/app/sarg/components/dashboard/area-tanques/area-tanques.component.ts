@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {PrimeNGConfig} from 'primeng/api';
 import {ImportsModule} from 'src/app/sarg/service/import';
 import {AreaTanques, AreaTanquesService} from 'src/app/sarg/service/area-tanques.service';
@@ -22,9 +22,12 @@ interface Column {
 	styleUrls: ['./area-tanques.component.scss'],
 })
 export class AreaTanquesComponent {
+	@Input() viewChildBoolean: boolean = true;
+
 	data: AreaTanques[] = [];
 	totalRecords: number = 0;
 	page: number = 1;
+	first: number = 0;
 	limit: number = 5;
 	search: string = '';
 	filter: string = '';
@@ -51,7 +54,7 @@ export class AreaTanquesComponent {
 	}
 
 	loading: boolean = true;
-
+	@Output() dataUpdated = new EventEmitter<void>();
 	loadData() {
 		const selectedFields = this.columns
 			.filter((col) => col.selected)
@@ -60,11 +63,17 @@ export class AreaTanquesComponent {
 
 		this.loading = true;
 		this.areaTanquesService.findAll(this.page, this.limit, this.filter, this.search, selectedFields).subscribe((response: any) => {
+			console.log(response);
 			this.data = response.data;
+			this.notifyParent();
 			this.totalRecords = response.total;
-			console.log(this.data);
 			this.loading = false;
 		});
+	}
+	notifyParent() {
+		if (this.dataUpdated.observers.length > 0) {
+			this.dataUpdated.emit(); // Solo se emite si alguien está escuchando
+		}
 	}
 
 	onSearchChange() {

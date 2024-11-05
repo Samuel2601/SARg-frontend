@@ -26,7 +26,6 @@ interface MarkerGroup {
 })
 export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	@Input() feature!: any;
-	@Input() poligon!: boolean;
 	@Input() key_cat!: string;
 	@Input() key_cat_label!: string;
 	@Input() columns_info!: any[];
@@ -58,25 +57,24 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 				},
 				gestureHandling: 'greedy', //'cooperative', // Control de gestos
 			});
-
 			this.initFullscreenControl();
-			setTimeout(async () => {
-				if (this.feature) {
-					if (Array.isArray(this.feature)) {
-						this.features_arr = this.feature;
-					} else {
-						this.features_arr = [this.feature];
-					}
-					await this.getcategorias();
-					await this.marcadoresmapa();
-				} else {
-					await this.listarFichaSectorialMapa();
-				}
-			}, 1000);
+			this.initFeature(this.feature);
 		});
 	}
 
-	async listarFichaSectorialMapa() {}
+	async initFeature(feature: any) {
+		if (feature) {
+			this.features_arr = [];
+			if (Array.isArray(feature)) {
+				this.features_arr = feature;
+			} else {
+				this.features_arr = [feature];
+			}
+			console.log(this.features_arr);
+			await this.getcategorias();
+			await this.marcadoresmapa();
+		}
+	}
 	actividades: any[] = [];
 	actividad_select: any[] = [];
 
@@ -104,7 +102,14 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	private activeInfoWindow: google.maps.InfoWindow | null = null;
 	private markerCluster: MarkerClusterer | undefined;
 	private readonly GROUPING_RADIUS_METERS = 20; // Radio de agrupación en metros
-
+	private polygons: google.maps.Polygon[] = []; // Array para almacenar los polígonos
+	// Método para limpiar todos los polígonos del mapa
+	clearPolygons() {
+		this.polygons.forEach((polygon) => {
+			polygon.setMap(null); // Elimina el polígono del mapa
+		});
+		this.polygons = []; // Vacía el array de polígonos
+	}
 	async marcadoresmapa() {
 		try {
 			const bounds = new google.maps.LatLngBounds();
@@ -119,6 +124,9 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 			if (this.markerCluster) {
 				this.markerCluster.clearMarkers();
 			}
+
+			// Primero, borrar los polígonos existentes
+			this.clearPolygons();
 
 			// Agrupar marcadores por posición
 			this.features_arr.forEach((item: any) => {
@@ -194,6 +202,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 								fillOpacity: 0.35,
 							});
 							polygon.setMap(this.mapCustom);
+							this.polygons.push(polygon); // Guardar el polígono en el array
 
 							// Escuchar el evento de clic en el polígono
 							google.maps.event.addListener(polygon, 'click', (event) => {
@@ -315,14 +324,18 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 		// Crear contenido del InfoWindow
 		const infoContent = this.buildInfoContent(item, lng, lat);
-		const columns_headers = this.columns_info.find((element: any) => {
-			if (element.visible && element.selected && element.field != 'id') {
-				return element;
-			}
-		});
+		const columns_headers =
+			(this.columns_info &&
+				this.columns_info.length > 0 &&
+				this.columns_info.find((element: any) => {
+					if (element.visible && element.selected && element.field != 'id') {
+						return element;
+					}
+				})) ||
+			null;
 
 		return new google.maps.InfoWindow({
-			headerContent: item[columns_headers.field] || 'Información',
+			headerContent: columns_headers ? item[columns_headers.field] : 'Información',
 			content: infoContent,
 			maxWidth: 400,
 		});
@@ -331,7 +344,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	// Método auxiliar para construir el contenido de InfoWindow dinámicamente
 	private buildInfoContent(item: any, lat: number, lng: number): string {
 		let infoContent = `<div class="info-window-content">`;
-		if (this.columns_info.length > 0) {
+		if (this.columns_info && this.columns_info.length > 0) {
 			this.columns_info.forEach((element: any) => {
 				if (element.selected && element.visible) {
 					infoContent += `<p style="margin: 0" ><strong>${element.header}:</strong> ${item[element.field]}</p>`;
@@ -424,7 +437,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 										? `<a href="/ver-feature/${item._id}" class="btn-ver-articulo">Ver Artículo</a>`
 										: ''
 								}
-                <a href="https://www.google.com/maps/dir/?api=1&destination=${item.direccion_geo.latitud},${item.direccion_geo.longitud}" 
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${item.direccion_geo.latitud},${item.direccion_geo.longitud}"
                    target="_blank" class="btn-direcciones">
                     Cómo llegar
                 </a>

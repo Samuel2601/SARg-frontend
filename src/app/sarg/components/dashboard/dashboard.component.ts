@@ -1,15 +1,18 @@
-import {Component, OnInit, OnDestroy} from '@angular/core';
+import {Component, OnInit, OnDestroy, ViewChild, AfterViewInit} from '@angular/core';
 import {MenuItem} from 'primeng/api';
 import {Product} from '../../api/product';
 import {Subscription, debounceTime} from 'rxjs';
 import {LayoutService} from 'src/app/layout/service/app.layout.service';
 import {GeoService} from '../../service/geo.service';
 import {GeoFeature} from '../../api/poligon';
+import {UbiTanquesComponent} from './ubi-tanques/ubi-tanques.component';
+import {AreaTanquesComponent} from './area-tanques/area-tanques.component';
+import {MapaMostrarFichasComponent} from '../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 
 @Component({
 	templateUrl: './dashboard.component.html',
 })
-export class DashboardComponent implements OnInit, OnDestroy {
+export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	items!: MenuItem[];
 
 	products!: Product[];
@@ -98,5 +101,44 @@ export class DashboardComponent implements OnInit, OnDestroy {
 		if (this.subscription) {
 			this.subscription.unsubscribe();
 		}
+	}
+	ubiTanquesData: any[] = [];
+	areaTanquesData: any[] = [];
+
+	@ViewChild(UbiTanquesComponent) ubiTanquesComponent!: UbiTanquesComponent;
+	@ViewChild(AreaTanquesComponent) areaTanquesComponent!: AreaTanquesComponent;
+	@ViewChild(MapaMostrarFichasComponent) mapComponent!: MapaMostrarFichasComponent;
+
+	// Método que recoge los datos de los subcomponentes
+	loading: boolean = true;
+	ngAfterViewInit() {
+		this.collectData();
+	}
+	collectData() {
+		this.ubiTanquesData = this.ubiTanquesComponent.data;
+		this.areaTanquesData = this.areaTanquesComponent.data;
+
+		this.onMapDataUpdated();
+	}
+	onMapDataUpdated() {
+		this.loading = true;
+		// Enviar los datos recogidos al componente de mapa
+		this.mapComponent.initFeature([...this.ubiTanquesData, ...this.areaTanquesData]);
+		this.loading = false;
+	}
+
+	// Puedes agregar métodos que los subcomponentes llamen al actualizar los datos
+	onUbiTanquesDataUpdated() {
+		this.ubiTanquesData = [];
+		this.ubiTanquesData = this.ubiTanquesComponent.data;
+		console.log(this.ubiTanquesData, this.areaTanquesData);
+		this.onMapDataUpdated();
+	}
+
+	onAreaTanquesDataUpdated() {
+		this.areaTanquesData = [];
+		this.areaTanquesData = this.areaTanquesComponent.data;
+		console.log(this.ubiTanquesData, this.areaTanquesData);
+		this.onMapDataUpdated();
 	}
 }

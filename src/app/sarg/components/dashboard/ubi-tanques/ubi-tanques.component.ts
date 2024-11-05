@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {PrimeNGConfig} from 'primeng/api';
 import {ImportsModule} from 'src/app/sarg/service/import';
 import {UbiTanques, UbiTanquesService} from 'src/app/sarg/service/ubi-tanques.service';
@@ -22,6 +22,8 @@ interface Column {
 	styleUrl: './ubi-tanques.component.scss',
 })
 export class UbiTanquesComponent {
+	@Input() viewChildBoolean: boolean = true;
+
 	data: any[] = [];
 	totalRecords: number = 0;
 	page: number = 1;
@@ -44,6 +46,7 @@ export class UbiTanquesComponent {
 
 	displayColumnDialog: boolean = false; // Controla la visibilidad del diálogo
 	columnOrderList: Column[] = [...this.columns]; // Crea una copia para la configuración de columnas
+	first: number = 0;
 
 	constructor(private ubiTanquesService: UbiTanquesService, private geoService: GeoService, private primengConfig: PrimeNGConfig) {}
 
@@ -53,7 +56,7 @@ export class UbiTanquesComponent {
 	}
 
 	loading: boolean = true;
-
+	@Output() dataUpdated = new EventEmitter<void>();
 	loadData() {
 		const selectedFields = this.columns
 			.filter((col) => col.selected)
@@ -63,10 +66,15 @@ export class UbiTanquesComponent {
 		this.loading = true;
 		this.ubiTanquesService.findAll(this.page, this.limit, this.filter, this.search, selectedFields).subscribe((response: any) => {
 			this.data = response.data;
+			this.notifyParent();
 			this.totalRecords = response.total;
-			console.log(this.data);
 			this.loading = false;
 		});
+	}
+	notifyParent() {
+		if (this.dataUpdated.observers.length > 0) {
+			this.dataUpdated.emit(); // Solo se emite si alguien está escuchando
+		}
 	}
 
 	onSearchChange() {

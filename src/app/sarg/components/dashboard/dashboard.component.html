@@ -1,7 +1,4 @@
 <div class="grid">
-	<div class="col-12">
-		<app-unificado-tanques></app-unificado-tanques>
-	</div>
 	<div class="col-12 lg:col-6 xl:col-3">
 		<div class="card mb-0">
 			<div class="flex justify-content-between mb-3">
@@ -69,6 +66,24 @@
 			<span class="text-green-500 font-medium">85 </span>
 			<span class="text-500">responded</span>
 		</div>
+	</div>
+
+	<div class="col-12">
+		<app-mapa-mostrar-fichas> </app-mapa-mostrar-fichas>
+		<p-skeleton
+			*ngIf="loading"
+			width="100%"
+			height="250px" />
+	</div>
+	<div class="col-12 xl:col-6">
+		<app-ubi-tanques
+			[viewChildBoolean]="false"
+			(dataUpdated)="onUbiTanquesDataUpdated()"></app-ubi-tanques>
+	</div>
+	<div class="col-12 xl:col-6">
+		<app-area-tanques
+			[viewChildBoolean]="false"
+			(dataUpdated)="onAreaTanquesDataUpdated()"></app-area-tanques>
 	</div>
 
 	<div class="col-12 xl:col-6">

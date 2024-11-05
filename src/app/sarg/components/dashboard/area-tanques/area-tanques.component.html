@@ -1,17 +1,18 @@
 <div>
 	<h2>Areas Tanques</h2>
-	<app-mapa-mostrar-fichas
-		*ngIf="data.length > 0 && !loading"
-		[feature]="data"
-		[poligon]="false"
-		key_cat="sector"
-		key_cat_label="sector"
-		[columns_info]="columns">
-	</app-mapa-mostrar-fichas>
-	<p-skeleton
-		*ngIf="loading"
-		width="100%"
-		height="250px" />
+	<ng-container *ngIf="viewChildBoolean">
+		<app-mapa-mostrar-fichas
+			*ngIf="data.length > 0 && !loading"
+			[feature]="data"
+			key_cat="sector"
+			key_cat_label="sector"
+			[columns_info]="columns">
+		</app-mapa-mostrar-fichas>
+		<p-skeleton
+			*ngIf="loading"
+			width="100%"
+			height="250px" />
+	</ng-container>
 
 	<div
 		class="p-field"
@@ -23,8 +24,9 @@
 				type="text"
 				[(ngModel)]="search"
 				(input)="onSearchChange()"
-				pInputText />
-			<label for="search">(Nombre Tanque, Orden, Sector, Capacidad, Número)</label>
+				pInputText
+				pTooltip="Buscar por: Nombre Tanque, Orden, Sector, Capacidad, Número"
+				tooltipPosition="right" />
 		</div>
 		<div>
 			<button
@@ -39,7 +41,8 @@
 	<p-table
 		[value]="data"
 		[rows]="limit"
-		(onPage)="onPageChange($event)">
+		(onPage)="onPageChange($event)"
+		scrollHeight="500px">
 		<ng-template pTemplate="header">
 			<tr>
 				<!-- Mostrar solo columnas visibles -->
@@ -66,9 +69,14 @@
 
 	<p-paginator
 		[rows]="limit"
+		[first]="first"
 		[totalRecords]="totalRecords"
 		[rowsPerPageOptions]="[5, 10, 20, 100, 1000]"
-		(onPageChange)="onPageChange($event)">
+		(onPageChange)="onPageChange($event)"
+		[showCurrentPageReport]="true"
+		[showPageLinks]="false"
+		[showJumpToPageDropdown]="false"
+		currentPageReportTemplate="Viendo {first} al {last} de {totalRecords}">
 	</p-paginator>
 
 	<!-- Dialog para la configuración de columnas -->

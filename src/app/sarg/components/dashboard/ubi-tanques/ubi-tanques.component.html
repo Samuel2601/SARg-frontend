@@ -1,17 +1,19 @@
 <div>
 	<h2>Ubi Tanques</h2>
-	<app-mapa-mostrar-fichas
-		*ngIf="data.length > 0 && !loading"
-		[feature]="data"
-		[poligon]="false"
-		key_cat="capacidad"
-		key_cat_label="capacidad"
-		[columns_info]="columns">
-	</app-mapa-mostrar-fichas>
-	<p-skeleton
-		*ngIf="loading"
-		width="100%"
-		height="250px" />
+	<ng-container *ngIf="viewChildBoolean">
+		<app-mapa-mostrar-fichas
+			*ngIf="data.length > 0 && !loading"
+			[feature]="data"
+			[polygon]="false"
+			key_cat="capacidad"
+			key_cat_label="capacidad"
+			[columns_info]="columns">
+		</app-mapa-mostrar-fichas>
+		<p-skeleton
+			*ngIf="loading"
+			width="100%"
+			height="250px" />
+	</ng-container>
 
 	<div
 		class="p-field"
@@ -38,7 +40,8 @@
 	<p-table
 		[value]="data"
 		[rows]="limit"
-		(onPage)="onPageChange($event)">
+		(onPage)="onPageChange($event)"
+		scrollHeight="500px">
 		<ng-template pTemplate="header">
 			<tr>
 				<!-- Mostrar solo columnas visibles -->
@@ -65,9 +68,14 @@
 
 	<p-paginator
 		[rows]="limit"
+		[first]="first"
 		[totalRecords]="totalRecords"
 		[rowsPerPageOptions]="[5, 10, 20, 100, 1000]"
-		(onPageChange)="onPageChange($event)">
+		(onPageChange)="onPageChange($event)"
+		[showCurrentPageReport]="true"
+		[showPageLinks]="false"
+		[showJumpToPageDropdown]="false"
+		currentPageReportTemplate="Viendo {first} al {last} de {totalRecords}">
 	</p-paginator>
 
 	<!-- Dialog para la configuración de columnas -->
