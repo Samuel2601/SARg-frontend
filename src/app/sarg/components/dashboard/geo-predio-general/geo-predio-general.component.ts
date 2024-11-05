@@ -30,6 +30,33 @@ export class GeoPredioGeneralComponent {
 	search: string = '';
 	filter: string = '';
 
+	// Opciones de filtrado
+	filterOptions: any[] = [
+		{label: 'Comienza con', value: 'startsWith'},
+		{label: 'Contiene', value: 'contains'},
+		{label: 'Termina con', value: 'endsWith'},
+		{label: 'Igual a', value: 'equals'},
+		{label: 'Diferente de', value: 'notEquals'},
+	];
+
+	onFilterChange(event: any, dt1: any) {
+		const filterValues = event.filters;
+		console.log('Valores de filtro', event, dt1);
+		this.filter = this.buildFilterString(filterValues);
+		this.loadData();
+	}
+
+	buildFilterString(filters: any): string {
+		const filterArray = [];
+		for (const key in filters) {
+			if (filters[key] && filters[key].value) {
+				const filterCondition = `${key}=${filters[key].value}`;
+				filterArray.push(filterCondition);
+			}
+		}
+		return filterArray.join(',');
+	}
+
 	columns: Column[] = [
 		{field: 'id', header: 'ID', visible: true, selected: true, disabled_selected: true, disabled_visible: true},
 		{field: 'claveCatastral', header: 'Clave Catastral', visible: true, selected: true, disabled_selected: false, disabled_visible: false},

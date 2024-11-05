@@ -40,6 +40,7 @@
 	</div>
 
 	<p-table
+		#dt1
 		[value]="data"
 		[rows]="limit"
 		(onPage)="onPageChange($event)"
@@ -51,9 +52,19 @@
 					*ngFor="let col of columns"
 					[hidden]="!col.visible">
 					{{ col.header }}
+					<!-- Agregar p-columnFilter -->
+					<p-columnFilter
+						[field]="col.field"
+						[matchModeOptions]="filterOptions"
+						[placeholder]="'Filtrar por ' + col.header"
+						[showFilterOperator]="true"
+						display="menu"
+						(onFilter)="onFilterApplied($event, dt1)">
+					</p-columnFilter>
 				</th>
 			</tr>
 		</ng-template>
+
 		<ng-template
 			pTemplate="body"
 			let-tanque>
