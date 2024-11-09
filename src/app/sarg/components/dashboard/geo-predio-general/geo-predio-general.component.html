@@ -36,14 +36,20 @@
 				label="Configurar Columnas"
 				icon="pi pi-cog"
 				(click)="openColumnDialog()"></button>
+			<button
+				pButton
+				label="Busqueda Avanzada"
+				icon="pi pi-filter"
+				(click)="openFilterDialog()"></button>
 		</div>
 	</div>
 
 	<p-table
 		#dt1
-		[value]="data"
+		[value]="data_const"
 		[rows]="limit"
 		(onPage)="onPageChange($event)"
+		(onFilter)="onFilterChange($event)"
 		scrollHeight="500px">
 		<ng-template pTemplate="header">
 			<tr>
@@ -58,8 +64,7 @@
 						[matchModeOptions]="filterOptions"
 						[placeholder]="'Filtrar por ' + col.header"
 						[showFilterOperator]="true"
-						display="menu"
-						(onFilter)="onFilterApplied($event, dt1)">
+						display="menu">
 					</p-columnFilter>
 				</th>
 			</tr>
@@ -147,6 +152,52 @@
 				label="Cancelar"
 				icon="pi pi-times"
 				(click)="displayColumnDialog = false"></button>
+		</p-footer>
+	</p-dialog>
+
+	<p-dialog
+		header="Filtrar por columna"
+		[(visible)]="displayFilterDialog"
+		modal="true"
+		[style]="{width: '600px'}"
+		[closable]="true"
+		showEffect="fade"
+		[responsive]="true">
+		<!-- Contenedor de filtros -->
+		<div class="p-grid">
+			<div
+				*ngFor="let col of columns"
+				class="p-col-12 p-md-6">
+				<div
+					class="p-field"
+					*ngIf="col.visible">
+					<label for="{{ col.field }}">{{ col.header }}</label>
+					<input
+						pInputText
+						type="text"
+						[(ngModel)]="filters[col.field]"
+						[placeholder]="'Filtrar por ' + col.header"
+						class="filter-input" />
+				</div>
+			</div>
+		</div>
+
+		<!-- Pie de diálogo -->
+		<p-footer>
+			<div class="p-d-flex p-jc-between">
+				<button
+					pButton
+					label="Aplicar"
+					icon="pi pi-check"
+					(click)="applyFilters()"
+					class="p-button-success p-button-outlined"></button>
+				<button
+					pButton
+					label="Cancelar"
+					icon="pi pi-times"
+					(click)="displayFilterDialog = false"
+					class="p-button-secondary p-button-outlined"></button>
+			</div>
 		</p-footer>
 	</p-dialog>
 </div>

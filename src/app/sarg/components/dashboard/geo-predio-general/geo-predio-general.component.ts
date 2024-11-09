@@ -1,8 +1,9 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {ImportsModule} from 'src/app/sarg/service/import';
 import {MapaMostrarFichasComponent} from '../../mapa-mostrar-fichas/mapa-mostrar-fichas.component';
 import {GeoPredioGeneralService} from 'src/app/sarg/service/geo-predio-general.service';
 import {PrimeNGConfig} from 'primeng/api';
+import {Table} from 'primeng/table';
 
 interface Column {
 	field: string;
@@ -22,8 +23,10 @@ interface Column {
 })
 export class GeoPredioGeneralComponent {
 	@Input() viewChildBoolean: boolean = true;
+	@ViewChild('dt1') table!: Table;
 
 	data: any[] = [];
+	data_const: any[] = [];
 	totalRecords: number = 0;
 	page: number = 1;
 	limit: number = 10;
@@ -39,22 +42,74 @@ export class GeoPredioGeneralComponent {
 		{label: 'Diferente de', value: 'notEquals'},
 	];
 
-	onFilterChange(event: any, dt1: any) {
-		const filterValues = event.filters;
-		console.log('Valores de filtro', event, dt1);
-		this.filter = this.buildFilterString(filterValues);
-		this.loadData();
+	async onFilterChange(event: any) {
+		console.log(event);
+		if (this.buildFilterStringTable(event.filters)) {
+			this.data = event.filteredValue;
+
+			this.onMapDataUpdated();
+		}
+	}
+	@ViewChild(MapaMostrarFichasComponent) mapComponent!: MapaMostrarFichasComponent;
+	async onMapDataUpdated() {
+		if (this.mapComponent) {
+			this.loading = true;
+			// Enviar los datos recogidos al componente de mapa
+			await this.mapComponent.clearAll();
+			this.mapComponent.initFeature([...this.data]);
+			this.loading = false;
+		}
 	}
 
-	buildFilterString(filters: any): string {
+	displayFilterDialog: boolean = false;
+	filters: {[key: string]: string} = {}; // Almacenará los valores de los filtros para cada columna
+
+	buildFilterStringTable(filters: any): string {
 		const filterArray = [];
 		for (const key in filters) {
-			if (filters[key] && filters[key].value) {
-				const filterCondition = `${key}=${filters[key].value}`;
+			if (filters[key]) {
+				filters[key].forEach((element: any) => {
+					if (element.value) {
+						const filterCondition = `${key}=${element.value}`;
+						filterArray.push(filterCondition);
+					}
+				});
+			}
+		}
+		let result = filterArray.join(',');
+		console.log(result, this.filter);
+		if (result === this.filter) {
+			result = null;
+		}
+		return result;
+	}
+
+	async applyFilters() {
+		// Convierte los filtros en un string que puede pasarse a la consulta
+		const filterString = this.buildFilterString(this.filters);
+		console.log('Filtro aplicado:', filterString);
+		this.filter = filterString; // Actualiza el filtro actual para su comparación
+		this.displayFilterDialog = false; // Cierra el diálogo
+		await this.loadData();
+	}
+	buildFilterString(filters: any): string | null {
+		const filterArray = [];
+		for (const key in filters) {
+			if (filters[key]) {
+				const filterCondition = `${key}=${filters[key]}`;
 				filterArray.push(filterCondition);
 			}
 		}
-		return filterArray.join(',');
+		let result = filterArray.join(',');
+		console.log(result, this.filter);
+		if (result === this.filter) {
+			result = null;
+		}
+		return result;
+	}
+
+	openFilterDialog() {
+		this.displayFilterDialog = true;
 	}
 
 	columns: Column[] = [
@@ -94,15 +149,18 @@ export class GeoPredioGeneralComponent {
 
 	constructor(private geoPredioGeneralService: GeoPredioGeneralService, private primengConfig: PrimeNGConfig) {}
 
-	ngOnInit() {
-		this.loadData();
+	async ngOnInit() {
+		await this.loadData();
 		this.primengConfig.ripple = true;
 	}
 
 	loading: boolean = true;
 	@Output() dataUpdated = new EventEmitter<void>();
 
-	loadData() {
+	async loadData() {
+		if (this.table) {
+			this.table.clear();
+		}
 		const selectedFields = this.columns
 			.filter((col) => col.selected)
 			.map((col) => col.field)
@@ -111,14 +169,16 @@ export class GeoPredioGeneralComponent {
 		this.loading = true;
 		this.geoPredioGeneralService.findAll(this.page, this.limit, this.filter, this.search, selectedFields).subscribe((response: any) => {
 			// Transformar los datos para renombrar 'poligono' a 'geom' y eliminar 'poligono'
-			this.data = response.data.map((item: any) => {
+			this.data = [];
+			this.data_const = response.data.map((item: any) => {
 				const {poligono, ...rest} = item; // Desestructuración para extraer 'poligono' y mantener el resto
 				return {
 					...rest,
 					geom: poligono, // Renombrar 'poligono' a 'geom'
 				};
 			});
-
+			this.data = this.data_const;
+			this.onMapDataUpdated();
 			this.notifyParent();
 			this.totalRecords = response.total;
 			this.updateRowsOptions();
