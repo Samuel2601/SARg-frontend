@@ -226,19 +226,24 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 								return position;
 							});
 
+							// Calcular el área del polígono para determinar el zIndex
+							const polygonArea = google.maps.geometry.spherical.computeArea(path);
+							const zIndexValue = Math.round(1000 - polygonArea); // Cuanto más pequeño el área, mayor el zIndex
+
 							// Obtener los valores de las variables CSS
 							const rootStyle = getComputedStyle(document.documentElement);
 							const primaryColor = rootStyle.getPropertyValue('--highlight-text-color').trim();
 							const surfaceColor = rootStyle.getPropertyValue('--text-color').trim();
 
-							// Crear el polígono
+							// Crear el polígono con el zIndex calculado
 							const polygon = new google.maps.Polygon({
 								paths: path,
-								strokeColor: surfaceColor, // Usar el color primario
+								strokeColor: surfaceColor,
 								strokeOpacity: 0.8,
 								strokeWeight: 2,
-								fillColor: primaryColor, // Usar el color de superficie
+								fillColor: primaryColor,
 								fillOpacity: 0.35,
+								zIndex: zIndexValue, // Usar el zIndex basado en el tamaño del área
 							});
 							polygon.setMap(this.mapCustom);
 							this.polygons.push(polygon); // Guardar el polígono en el array
