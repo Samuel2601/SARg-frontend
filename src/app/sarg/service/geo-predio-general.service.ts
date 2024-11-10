@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
+import {environment} from 'src/environments/environment';
 
 export interface GeoPredioGeneral {
 	id: string;
@@ -23,7 +24,7 @@ export interface GeoPredioGeneral {
 	providedIn: 'root',
 })
 export class GeoPredioGeneralService {
-	private apiUrl = 'http://localhost:3000/geo-predio-general';
+	private apiUrl = `${environment.apiUrl}/geo-predio-general`;
 
 	constructor(private http: HttpClient) {}
 

@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
+import {environment} from 'src/environments/environment';
 
 export interface TubWinchele {
 	id: number;
@@ -24,7 +25,7 @@ export interface TubWinchele {
 	providedIn: 'root',
 })
 export class TubWincheleService {
-	private apiUrl = 'http://localhost:3000/tub-winchele'; // URL de tu API
+	private apiUrl = `${environment.apiUrl}/tub-winchele`; // URL de tu API
 
 	constructor(private http: HttpClient) {}
 

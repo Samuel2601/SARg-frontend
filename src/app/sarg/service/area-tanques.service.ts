@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
+import {environment} from 'src/environments/environment';
 
 export interface AreaTanques {
 	id: number;
@@ -16,7 +17,7 @@ export interface AreaTanques {
 	providedIn: 'root',
 })
 export class AreaTanquesService {
-	private apiUrl = 'http://localhost:3000/area-tanques'; // URL de tu API para Area Tanques
+	private apiUrl = `${environment.apiUrl}/area-tanques`; // URL de tu API para Area Tanques
 
 	constructor(private http: HttpClient) {}
 

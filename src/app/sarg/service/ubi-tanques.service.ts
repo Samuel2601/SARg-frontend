@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {Observable} from 'rxjs';
+import {environment} from 'src/environments/environment';
 
 export interface UbiTanques {
 	id: number;
@@ -19,7 +20,7 @@ export interface UbiTanques {
 	providedIn: 'root',
 })
 export class UbiTanquesService {
-	private apiUrl = 'http://localhost:3000/ubi-tanques'; // URL de tu API
+	private apiUrl = `${environment.apiUrl}/ubi-tanques`; // URL de tu API
 
 	constructor(private http: HttpClient) {}
 
