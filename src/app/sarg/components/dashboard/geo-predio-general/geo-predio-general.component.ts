@@ -4,6 +4,7 @@ import {MapaMostrarFichasComponent} from '../../mapa-mostrar-fichas/mapa-mostrar
 import {GeoPredioGeneralService} from 'src/app/sarg/service/geo-predio-general.service';
 import {PrimeNGConfig} from 'primeng/api';
 import {Table} from 'primeng/table';
+import {IndexedDbService} from 'src/app/sarg/service/indexed-db.service';
 
 interface Column {
 	field: string;
@@ -147,7 +148,11 @@ export class GeoPredioGeneralComponent {
 	columnOrderList: Column[] = [...this.columns];
 	first: number = 0;
 
-	constructor(private geoPredioGeneralService: GeoPredioGeneralService, private primengConfig: PrimeNGConfig) {}
+	constructor(
+		private geoPredioGeneralService: GeoPredioGeneralService,
+		private primengConfig: PrimeNGConfig,
+		private indexedDbService: IndexedDbService,
+	) {}
 
 	async ngOnInit() {
 		await this.loadData();
@@ -161,29 +166,55 @@ export class GeoPredioGeneralComponent {
 		if (this.table) {
 			this.table.clear();
 		}
+
 		const selectedFields = this.columns
 			.filter((col) => col.selected)
 			.map((col) => col.field)
 			.join(',');
 
 		this.loading = true;
-		this.geoPredioGeneralService.findAll(this.page, this.limit, this.filter, this.search, selectedFields).subscribe((response: any) => {
-			// Transformar los datos para renombrar 'poligono' a 'geom' y eliminar 'poligono'
-			this.data = [];
-			this.data_const = response.data.map((item: any) => {
-				const {poligono, ...rest} = item; // Desestructuración para extraer 'poligono' y mantener el resto
-				return {
-					...rest,
-					geom: poligono, // Renombrar 'poligono' a 'geom'
-				};
+
+		try {
+			// Intentar cargar desde IndexedDB
+			const cachedData = await this.indexedDbService.getData(this.page);
+			console.log(cachedData);
+			if (cachedData && cachedData.length > 0) {
+				this.data_const = cachedData.data;
+				this.totalRecords = cachedData.totalRecords;
+				this.data = this.data_const;
+				this.onMapDataUpdated();
+				this.notifyParent();
+				this.loading = false;
+				return;
+			}
+
+			// Si no hay datos en IndexedDB, cargar del servidor
+			this.geoPredioGeneralService.findAll(this.page, this.limit, this.filter, this.search, selectedFields).subscribe(async (response: any) => {
+				const transformedData = response.data.map((item: any) => {
+					const {poligono, ...rest} = item;
+					return {...rest, geom: poligono};
+				});
+
+				this.data_const = transformedData;
+				this.data = transformedData;
+				this.totalRecords = response.total;
+				this.onMapDataUpdated();
+				this.notifyParent();
+
+				// Guardar en IndexedDB, incluyendo totalRecords
+                console.log(this.limit,this.totalRecords,this.page,this.filter,this.search);
+				if (this.limit == this.totalRecords) {
+                    console.log('Guardando');
+					await this.indexedDbService.addData(this.page, transformedData, this.totalRecords);
+				}
+
+				this.updateRowsOptions();
+				this.loading = false;
 			});
-			this.data = this.data_const;
-			this.onMapDataUpdated();
-			this.notifyParent();
-			this.totalRecords = response.total;
-			this.updateRowsOptions();
+		} catch (error) {
+			console.error('Error al cargar datos:', error);
 			this.loading = false;
-		});
+		}
 	}
 
 	notifyParent() {

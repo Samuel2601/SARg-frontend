@@ -9,6 +9,7 @@
 			key_cat_label="capacidad"
 			[columns_info]="columns">
 		</app-mapa-mostrar-fichas>
+
 		<p-skeleton
 			*ngIf="loading"
 			width="100%"
@@ -43,22 +44,22 @@
 				(click)="openFilterDialog()"></button>
 		</div>
 	</div>
-
-	<p-table
+	<!--	(onPage)="onPageChange($event)"
+		(onFilter)="onFilterChange($event)"
+        	<p-table
 		#dt1
 		[value]="data_const"
 		[rows]="limit"
-		(onPage)="onPageChange($event)"
-		(onFilter)="onFilterChange($event)"
-		scrollHeight="500px">
+		scrollHeight="500px"
+		[paginator]="true"
+		[rowsPerPageOptions]="[10, 50, 100]"
+		[totalRecords]="totalRecords">
 		<ng-template pTemplate="header">
 			<tr>
-				<!-- Mostrar solo columnas visibles -->
 				<th
 					*ngFor="let col of columns"
 					[hidden]="!col.visible">
 					{{ col.header }}
-					<!-- Agregar p-columnFilter -->
 					<p-columnFilter
 						[field]="col.field"
 						[matchModeOptions]="filterOptions"
@@ -74,7 +75,6 @@
 			pTemplate="body"
 			let-tanque>
 			<tr>
-				<!-- Mostrar solo valores de columnas visibles -->
 				<td
 					*ngFor="let col of columns"
 					[hidden]="!col.visible">
@@ -82,7 +82,8 @@
 				</td>
 			</tr>
 		</ng-template>
-	</p-table>
+	</p-table>-->
+
 
 	<p-paginator
 		[rows]="limit"

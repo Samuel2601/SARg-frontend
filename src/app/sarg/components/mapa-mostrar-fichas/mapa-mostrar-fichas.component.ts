@@ -190,8 +190,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 					}
 
 					// Convertir coordenadas de UTM a latitud/longitud utilizando el CRS detectado
-					const [lat, lng] = proj4(crsName, proj4.WGS84, [coordinates[0], coordinates[1]]);
-					const position = new google.maps.LatLng(lng, lat);
+					//const [lat, lng] = proj4(crsName, proj4.WGS84, [coordinates[0], coordinates[1]]);
+					const position = new google.maps.LatLng(coordinates[1], coordinates[0]);
 
 					const marker = this.createMarker(position, item);
 					const infoWindow = this.createInfoWindow(item);
@@ -220,15 +220,20 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 						polygonCoords.forEach((ring: any) => {
 							const path = ring.map((coord: any) => {
 								// Convertir coordenadas de UTM a latitud/longitud
-								const [lat, lng] = proj4(crsName, proj4.WGS84, [...coord]);
-								const position = new google.maps.LatLng(lng, lat);
+								//const [lat, lng] = proj4(crsName, proj4.WGS84, [...coord]);
+								const position = new google.maps.LatLng(coord[1], coord[0]);
 								bounds.extend(position);
 								return position;
 							});
 
 							// Calcular el área del polígono para determinar el zIndex
-							const polygonArea = google.maps.geometry.spherical.computeArea(path);
-							const zIndexValue = Math.round(1000 - polygonArea); // Cuanto más pequeño el área, mayor el zIndex
+							let polygonArea = 0;
+							try {
+								polygonArea = google.maps.geometry.spherical.computeArea(path);
+							} catch (error) {
+								console.error('Error al calcular el área del polígono:', error);
+							}
+							const zIndexValue = Math.round(1000 - polygonArea);
 
 							// Obtener los valores de las variables CSS
 							const rootStyle = getComputedStyle(document.documentElement);
@@ -274,7 +279,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 						const path = lineString.map((coord: any) => {
 							// Convertir coordenadas de UTM a latitud/longitud
 							const [lat, lng] = proj4(crsName, proj4.WGS84, [...coord]);
-							const position = new google.maps.LatLng(lng, lat);
+							const position = new google.maps.LatLng(coord[1], coord[0]); //(lng, lat);
 							bounds.extend(position);
 							return position;
 						});

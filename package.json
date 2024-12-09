@@ -32,6 +32,7 @@
         "@googlemaps/markerclusterer": "^2.5.3",
         "@types/google.maps": "^3.58.1",
         "chart.js": "^3.3.2",
+        "idb": "^8.0.0",
         "primeflex": "^3.3.1",
         "primeicons": "6.0.1",
         "primeng": "17.18.11",

@@ -65,6 +65,9 @@ importers:
       chart.js:
         specifier: ^3.3.2
         version: 3.9.1
+      idb:
+        specifier: ^8.0.0
+        version: 8.0.0
       primeflex:
         specifier: ^3.3.1
         version: 3.3.1
@@ -2452,6 +2455,9 @@ packages:
     engines: {node: ^10 || ^12 || >= 14}
     peerDependencies:
       postcss: ^8.1.0
+
+  idb@8.0.0:
+    resolution: {integrity: sha512-l//qvlAKGmQO31Qn7xdzagVPPaHTxXx199MhrAFuVBTPqydcPYBWjkrbv4Y0ktB+GmWOiwHl237UUOrLmQxLvw==}
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -6794,6 +6800,8 @@ snapshots:
   icss-utils@5.1.0(postcss@8.4.35):
     dependencies:
       postcss: 8.4.35
+
+  idb@8.0.0: {}
 
   ieee754@1.2.1: {}
 
