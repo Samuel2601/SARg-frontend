@@ -178,7 +178,7 @@ export class GeoPredioGeneralComponent {
 			// Intentar cargar desde IndexedDB
 			const cachedData = await this.indexedDbService.getData(this.page);
 			console.log(cachedData);
-			if (cachedData && cachedData.length > 0) {
+			if (cachedData && cachedData.data.length ==this.limit) {
 				this.data_const = cachedData.data;
 				this.totalRecords = cachedData.totalRecords;
 				this.data = this.data_const;
