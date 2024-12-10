@@ -1,0 +1,52 @@
+<div class="table-container">
+    <p-table
+        #dt1
+        [value]="data"
+        [columns]="columns"
+        [responsiveLayout]="'scroll'"
+        [scrollable]="true"
+        [scrollHeight]="'flex'"
+        stripedRows
+        [paginator]="true"
+        [rows]="rows"
+        [first]="first"
+        [showCurrentPageReport]="true"
+        [rowsPerPageOptions]="[5, 10, 50, 100]"
+        [currentPageReportTemplate]="'Mostrando {first} al {last} de {totalRecords} registros'">
+
+        <!-- Encabezado -->
+        <ng-template pTemplate="header">
+            <tr>
+                <th *ngFor="let col of columns" [hidden]="!col.visible">
+                    {{ col.header }}
+                    <p-columnFilter
+                        [field]="col.field"
+                        display="menu"
+                        [matchModeOptions]="filterOptions"
+                        [placeholder]="'Filtrar por ' + col.header"
+                        [showFilterOperator]="true"
+                        appendTo="body">
+                    </p-columnFilter>
+                </th>
+            </tr>
+        </ng-template>
+
+        <!-- Cuerpo -->
+        <ng-template pTemplate="body" let-rowData>
+            <tr>
+                <td *ngFor="let col of columns" [hidden]="!col.visible">
+                    {{ rowData[col.field] }}
+                </td>
+            </tr>
+        </ng-template>
+
+        <!-- Mensaje de tabla vacía -->
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td [attr.colspan]="columns.length" class="text-center">
+                    No se encontraron registros.
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+</div>

@@ -1,21 +1,5 @@
 <div>
 	<h2>Geo Predio General</h2>
-	<ng-container *ngIf="viewChildBoolean">
-		<app-mapa-mostrar-fichas
-			*ngIf="data.length > 0 && !loading"
-			[feature]="data"
-			[polygon]="false"
-			key_cat="capacidad"
-			key_cat_label="capacidad"
-			[columns_info]="columns">
-		</app-mapa-mostrar-fichas>
-
-		<p-skeleton
-			*ngIf="loading"
-			width="100%"
-			height="250px" />
-	</ng-container>
-
 	<div
 		class="p-field"
 		style="margin-top: 2rem; display: flex; justify-content: space-between">
@@ -31,19 +15,54 @@
 				tooltipPosition="right" />
 		</div>
 		<div>
+			<p-button
+				class="mx-2"
+				icon="pi pi-info"
+				label="Ver"
+				(click)="onpenTable()"></p-button>
 			<button
+				class="mx-2"
 				pButton
 				type="button"
 				label="Configurar Columnas"
 				icon="pi pi-cog"
 				(click)="openColumnDialog()"></button>
 			<button
+				class="mx-2"
 				pButton
 				label="Busqueda Avanzada"
 				icon="pi pi-filter"
 				(click)="openFilterDialog()"></button>
 		</div>
 	</div>
+	<ng-container *ngIf="viewChildBoolean">
+		<p-paginator
+			[rows]="limit"
+			[first]="first"
+			[totalRecords]="totalRecords"
+			[rowsPerPageOptions]="rowsOptions"
+			(onPageChange)="onPageChange($event)"
+			[showCurrentPageReport]="true"
+			[showPageLinks]="false"
+			[showJumpToPageDropdown]="false"
+			currentPageReportTemplate="Viendo {first} al {last} de {totalRecords}">
+		</p-paginator>
+		<app-mapa-mostrar-fichas
+			*ngIf="data.length > 0 && !loading"
+			[feature]="data"
+			[polygon]="false"
+			key_cat="capacidad"
+			key_cat_label="capacidad"
+			[columns_info]="columns"
+			[dimencion]="{height: '700px'}">
+		</app-mapa-mostrar-fichas>
+
+		<p-skeleton
+			*ngIf="loading"
+			width="100%"
+			height="250px" />
+	</ng-container>
+
 	<!--	(onPage)="onPageChange($event)"
 		(onFilter)="onFilterChange($event)"
         	<p-table
@@ -84,121 +103,108 @@
 		</ng-template>
 	</p-table>-->
 
-
-	<p-paginator
-		[rows]="limit"
-		[first]="first"
-		[totalRecords]="totalRecords"
-		[rowsPerPageOptions]="rowsOptions"
-		(onPageChange)="onPageChange($event)"
-		[showCurrentPageReport]="true"
-		[showPageLinks]="false"
-		[showJumpToPageDropdown]="false"
-		currentPageReportTemplate="Viendo {first} al {last} de {totalRecords}">
-	</p-paginator>
-
 	<!-- Dialog para la configuración de columnas -->
-	<p-dialog
-		[(visible)]="displayColumnDialog"
-		header="Configurar Columnas"
-		[style]="{width: '30vw'}"
-		modal="true">
-		<p-orderList
-			[value]="columnOrderList"
-			dragdrop="true"
-			[responsive]="true"
-			listStyle="height:200px">
-			<ng-template pTemplate="header">
-				<div
-					class="p-d-flex p-ai-center p-jc-between"
-					style="display: flex; justify-content: space-between">
-					<i
-						class="pi pi-eye"
-						style="cursor: pointer"></i>
-					<span class="p-ml-2">Columnas</span>
-					<i
-						class="pi pi-cloud-download"
-						style="cursor: pointer"></i>
-				</div>
-			</ng-template>
-			<ng-template
-				let-column
-				pTemplate="item">
-				<div
-					class="p-d-flex p-ai-center"
-					style="display: flex; justify-content: space-between">
-					<p-checkbox
-						[(ngModel)]="column.visible"
-						binary="true"
-						[disabled]="column.disabled_visible"></p-checkbox>
-					<span class="p-ml-2">{{ column.header }}</span>
-					<p-checkbox
-						[(ngModel)]="column.selected"
-						disbl
-						binary="true"
-						[disabled]="column.disabled_selected"></p-checkbox>
-				</div>
-			</ng-template>
-		</p-orderList>
-		<p-footer>
-			<button
-				pButton
-				type="button"
-				label="Guardar"
-				icon="pi pi-check"
-				(click)="saveColumnSettings()"></button>
-			<button
-				pButton
-				type="button"
-				label="Cancelar"
-				icon="pi pi-times"
-				(click)="displayColumnDialog = false"></button>
-		</p-footer>
-	</p-dialog>
-
-	<p-dialog
-		header="Filtrar por columna"
-		[(visible)]="displayFilterDialog"
-		modal="true"
-		[style]="{width: '600px'}"
-		[closable]="true"
-		showEffect="fade"
-		[responsive]="true">
-		<!-- Contenedor de filtros -->
-		<div class="p-grid">
+</div>
+<p-dialog
+	[(visible)]="displayColumnDialog"
+	header="Configurar Columnas"
+	[style]="{width: '30vw'}"
+	modal="true">
+	<p-orderList
+		[value]="columnOrderList"
+		dragdrop="true"
+		[responsive]="true"
+		listStyle="height:200px">
+		<ng-template pTemplate="header">
 			<div
-				*ngFor="let col of columns"
-				class="p-col-12 p-md-6">
-				<div
-					class="p-field"
-					*ngIf="col.visible">
-					<label for="{{ col.field }}">{{ col.header }}</label>
-					<input
-						pInputText
-						type="text"
-						[(ngModel)]="filters[col.field]"
-						[placeholder]="'Filtrar por ' + col.header"
-						class="filter-input" />
-				</div>
+				class="p-d-flex p-ai-center p-jc-between"
+				style="display: flex; justify-content: space-between">
+				<i
+					class="pi pi-eye"
+					style="cursor: pointer"></i>
+				<span class="p-ml-2">Columnas</span>
+				<i
+					class="pi pi-cloud-download"
+					style="cursor: pointer"></i>
+			</div>
+		</ng-template>
+		<ng-template
+			let-column
+			pTemplate="item">
+			<div
+				class="p-d-flex p-ai-center"
+				style="display: flex; justify-content: space-between">
+				<p-checkbox
+					[(ngModel)]="column.visible"
+					binary="true"
+					[disabled]="column.disabled_visible"></p-checkbox>
+				<span class="p-ml-2">{{ column.header }}</span>
+				<p-checkbox
+					[(ngModel)]="column.selected"
+					disbl
+					binary="true"
+					[disabled]="column.disabled_selected"></p-checkbox>
+			</div>
+		</ng-template>
+	</p-orderList>
+	<p-footer>
+		<button
+			pButton
+			type="button"
+			label="Guardar"
+			icon="pi pi-check"
+			(click)="saveColumnSettings()"></button>
+		<button
+			pButton
+			type="button"
+			label="Cancelar"
+			icon="pi pi-times"
+			(click)="displayColumnDialog = false"></button>
+	</p-footer>
+</p-dialog>
+
+<p-dialog
+	header="Filtrar por columna"
+	[(visible)]="displayFilterDialog"
+	modal="true"
+	[style]="{width: '600px'}"
+	[closable]="true"
+	showEffect="fade"
+	[responsive]="true">
+	<!-- Contenedor de filtros -->
+	<div class="p-grid">
+		<div
+			*ngFor="let col of columns"
+			class="p-col-12 p-md-6">
+			<div
+				class="p-field"
+				*ngIf="col.visible">
+				<label for="{{ col.field }}">{{ col.header }}</label>
+				<input
+					pInputText
+					type="text"
+					[(ngModel)]="filters[col.field]"
+					[placeholder]="'Filtrar por ' + col.header"
+					class="filter-input" />
 			</div>
 		</div>
+	</div>
 
-		<!-- Pie de diálogo -->
-		<p-footer>
-			<div class="p-d-flex p-jc-between">
-				<button
-					pButton
-					label="Aplicar"
-					icon="pi pi-check"
-					(click)="applyFilters()"
-					class="p-button-success p-button-outlined"></button>
-				<button
-					pButton
-					label="Cancelar"
-					icon="pi pi-times"
-					(click)="displayFilterDialog = false"
-					class="p-button-secondary p-button-outlined"></button>
-			</div>
-		</p-footer>
-	</p-dialog>
-</div>
+	<!-- Pie de diálogo -->
+	<p-footer>
+		<div class="p-d-flex p-jc-between">
+			<button
+				pButton
+				label="Aplicar"
+				icon="pi pi-check"
+				(click)="applyFilters()"
+				class="p-button-success p-button-outlined"></button>
+			<button
+				pButton
+				label="Cancelar"
+				icon="pi pi-times"
+				(click)="displayFilterDialog = false"
+				class="p-button-secondary p-button-outlined"></button>
+		</div>
+	</p-footer>
+</p-dialog>

@@ -5,6 +5,8 @@ import {GeoPredioGeneralService} from 'src/app/sarg/service/geo-predio-general.s
 import {PrimeNGConfig} from 'primeng/api';
 import {Table} from 'primeng/table';
 import {IndexedDbService} from 'src/app/sarg/service/indexed-db.service';
+import {TableDialogComponent} from 'src/app/sarg/core/table-dialog/table-dialog.component';
+import { DialogService } from 'primeng/dynamicdialog';
 
 interface Column {
 	field: string;
@@ -18,9 +20,10 @@ interface Column {
 @Component({
 	selector: 'app-geo-predio-general',
 	standalone: true,
-	imports: [ImportsModule, MapaMostrarFichasComponent],
+	imports: [ImportsModule, MapaMostrarFichasComponent, TableDialogComponent],
 	templateUrl: './geo-predio-general.component.html',
 	styleUrls: ['./geo-predio-general.component.scss'],
+    providers:[DialogService]
 })
 export class GeoPredioGeneralComponent {
 	@Input() viewChildBoolean: boolean = true;
@@ -152,6 +155,7 @@ export class GeoPredioGeneralComponent {
 		private geoPredioGeneralService: GeoPredioGeneralService,
 		private primengConfig: PrimeNGConfig,
 		private indexedDbService: IndexedDbService,
+        private dialogService: DialogService
 	) {}
 
 	async ngOnInit() {
@@ -178,7 +182,7 @@ export class GeoPredioGeneralComponent {
 			// Intentar cargar desde IndexedDB
 			const cachedData = await this.indexedDbService.getData(this.page);
 			console.log(cachedData);
-			if (cachedData && cachedData.data.length ==this.limit) {
+			if (cachedData && cachedData.data.length == this.limit) {
 				this.data_const = cachedData.data;
 				this.totalRecords = cachedData.totalRecords;
 				this.data = this.data_const;
@@ -202,9 +206,9 @@ export class GeoPredioGeneralComponent {
 				this.notifyParent();
 
 				// Guardar en IndexedDB, incluyendo totalRecords
-                console.log(this.limit,this.totalRecords,this.page,this.filter,this.search);
+				console.log(this.limit, this.totalRecords, this.page, this.filter, this.search);
 				if (this.limit == this.totalRecords) {
-                    console.log('Guardando');
+					console.log('Guardando');
 					await this.indexedDbService.addData(this.page, transformedData, this.totalRecords);
 				}
 
@@ -253,4 +257,31 @@ export class GeoPredioGeneralComponent {
 		this.displayColumnDialog = false;
 		this.loadData();
 	}
+
+    onpenTable() {
+        this.dialogService.open(TableDialogComponent, {
+            data: {
+                data: this.data_const,
+                columns: this.columns,
+            },
+            header: 'Detalles de la Tabla',
+            width: '90vw', // Ancho responsive
+            height: '90vh', // Alto responsive
+            style: {
+                padding: '0',
+                background: 'rgba(0, 0, 0, 0.5)',
+            },
+            contentStyle: {
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
+                background: 'white',
+                borderRadius: '0px',
+            },
+            breakpoints: {
+                '960px': '75vw',
+                '640px': '90vw'
+            }
+        });
+    }
 }

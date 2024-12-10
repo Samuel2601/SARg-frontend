@@ -1,0 +1,33 @@
+.table-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    @media (max-width: 768px) {
+        // Estilos específicos para dispositivos móviles
+        .p-table {
+            font-size: 0.8rem; // Reducir tamaño de fuente
+        }
+
+        .p-column-filter {
+            display: none; // Ocultar filtros en móviles
+        }
+    }
+
+    ::ng-deep .p-datatable-wrapper {
+        flex: 1;
+        overflow: auto;
+    }
+}
+
+// Estilos para diálogos responsive
+::ng-deep .p-dialog {
+    width: 90vw !important;
+    max-width: 100%;
+
+    .p-dialog-content {
+        padding: 0;
+        width: 100%;
+        height: 100%;
+    }
+}

@@ -25,6 +25,8 @@ interface MarkerGroup {
 	providers: [DatePipe],
 })
 export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
+	@Input() dimencion!: {width: string; height: string};
+
 	@Input() feature!: any;
 	@Input() key_cat!: string;
 	@Input() key_cat_label!: string;
@@ -38,9 +40,14 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 	features_arr: any[];
 
 	constructor(private router: Router, private googlemaps: GoogleMapsService, private datePipe: DatePipe) {}
-
+	// Estilos dinámicos para el mapa
+	mapStyle: {[key: string]: string} = {};
 	async ngOnInit() {
 		await this.initMap();
+		this.mapStyle = {
+			width: this.dimencion?.width || '100%', // Valor predeterminado: 100% de ancho
+			height: this.dimencion?.height || '400px', // Valor predeterminado: 400px de alto
+		};
 	}
 	mapStyles: google.maps.MapTypeStyle[] = [
 		{
