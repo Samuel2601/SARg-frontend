@@ -515,6 +515,54 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		});
 	}
 
+	private createPolyhgon(path) {
+		// Calcular el área del polígono para determinar el zIndex
+		let polygonArea = 0;
+		try {
+			polygonArea = google.maps.geometry.spherical.computeArea(path);
+		} catch (error) {
+			console.error('Error al calcular el área del polígono:', error);
+		}
+		const zIndexValue = Math.round(1000 - polygonArea);
+
+		// Obtener los valores de las variables CSS
+		const rootStyle = getComputedStyle(document.documentElement);
+		const primaryColor = rootStyle.getPropertyValue('--highlight-text-color').trim();
+		const surfaceColor = rootStyle.getPropertyValue('--text-color').trim();
+
+		// Crear el polígono con el zIndex calculado
+		const polygon = new google.maps.Polygon({
+			paths: path,
+			strokeColor: surfaceColor,
+			strokeOpacity: 0.8,
+			strokeWeight: 2,
+			fillColor: primaryColor,
+			fillOpacity: 0.35,
+			zIndex: zIndexValue, // Usar el zIndex basado en el tamaño del área
+		});
+		polygon.setMap(this.mapCustom);
+
+		return polygon;
+	}
+	private createPolyline(path) {
+		// Obtener los valores de las variables CSS
+		const rootStyle = getComputedStyle(document.documentElement);
+		const primaryColor = rootStyle.getPropertyValue('--highlight-text-color').trim();
+		const surfaceColor = rootStyle.getPropertyValue('--text-color').trim();
+
+		// Crear la polilínea
+		const polyline = new google.maps.Polyline({
+			path: path,
+			strokeColor: primaryColor,
+			strokeOpacity: 0.8,
+			strokeWeight: 3, // Puedes ajustar el grosor de la línea aquí
+		});
+
+		polyline.setMap(this.mapCustom); // Agregar la polilínea al mapa
+
+		return polyline;
+	}
+
 	private getMarkerSize(item: any): google.maps.Size {
 		const isPast = new Date(item.fecha_evento).getTime() < new Date().getTime();
 		const hasCustomIcon = item.icono_marcador && item.icono_marcador !== 'https://i.postimg.cc/FHd2yrXM/alfiler.png';
