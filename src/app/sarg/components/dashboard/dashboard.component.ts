@@ -147,33 +147,33 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
 	onUbiTanquesDataUpdated() {
 		this.ubiTanquesData = [];
 		this.ubiTanquesData = this.ubiTanquesComponent.data;
-		console.log('UBI Tanques', this.ubiTanquesData);
+		//console.log('UBI Tanques', this.ubiTanquesData);
 		this.onMapDataUpdated();
 	}
 
 	onAreaTanquesDataUpdated() {
 		this.areaTanquesData = [];
 		this.areaTanquesData = this.areaTanquesComponent.data;
-		console.log('Area Tanques', this.areaTanquesData);
+		//console.log('Area Tanques', this.areaTanquesData);
 		this.onMapDataUpdated();
 	}
 
 	onLineaConduccionDataUpdated() {
 		this.lineaConduccionData = [];
 		this.lineaConduccionData = this.lineaConduccionComponent.data;
-		console.log('linea conduccion', this.lineaConduccionData);
+		//console.log('linea conduccion', this.lineaConduccionData);
 		this.onMapDataUpdated();
 	}
 	onTubWincheleDataUpdated() {
 		this.tubWincheleData = [];
 		this.tubWincheleData = this.tubWincheleComponent.data;
-		console.log('tub winchele', this.tubWincheleData);
+		//console.log('tub winchele', this.tubWincheleData);
 		this.onMapDataUpdated();
 	}
 	onGeoPredioGeneralDataUpdated() {
 		this.geoPredioGeneralData = [];
 		this.geoPredioGeneralData = this.geoPredioGeneralComponent.data;
-		console.log('geo predio general', this.geoPredioGeneralData);
+		//console.log('geo predio general', this.geoPredioGeneralData);
 		this.onMapDataUpdated();
 	}
 }

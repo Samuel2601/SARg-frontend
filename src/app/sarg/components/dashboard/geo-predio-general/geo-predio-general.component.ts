@@ -27,7 +27,6 @@ interface Column {
 })
 export class GeoPredioGeneralComponent {
 	@Input() viewChildBoolean: boolean = true;
-	@ViewChild('dt1') table!: Table;
 
 	data: any[] = [];
 	data_const: any[] = [];
@@ -36,85 +35,6 @@ export class GeoPredioGeneralComponent {
 	limit: number = 10;
 	search: string = '';
 	filter: string = '';
-
-	// Opciones de filtrado
-	filterOptions: any[] = [
-		{label: 'Comienza con', value: 'startsWith'},
-		{label: 'Contiene', value: 'contains'},
-		{label: 'Termina con', value: 'endsWith'},
-		{label: 'Igual a', value: 'equals'},
-		{label: 'Diferente de', value: 'notEquals'},
-	];
-
-	async onFilterChange(event: any) {
-		console.log(event);
-		if (this.buildFilterStringTable(event.filters)) {
-			this.data = event.filteredValue;
-
-			this.onMapDataUpdated();
-		}
-	}
-	@ViewChild(MapaMostrarFichasComponent) mapComponent!: MapaMostrarFichasComponent;
-	async onMapDataUpdated() {
-		if (this.mapComponent) {
-			this.loading = true;
-			// Enviar los datos recogidos al componente de mapa
-			await this.mapComponent.clearAll();
-			this.mapComponent.initFeature([...this.data]);
-			this.loading = false;
-		}
-	}
-
-	displayFilterDialog: boolean = false;
-	filters: {[key: string]: string} = {}; // Almacenará los valores de los filtros para cada columna
-
-	buildFilterStringTable(filters: any): string {
-		const filterArray = [];
-		for (const key in filters) {
-			if (filters[key]) {
-				filters[key].forEach((element: any) => {
-					if (element.value) {
-						const filterCondition = `${key}=${element.value}`;
-						filterArray.push(filterCondition);
-					}
-				});
-			}
-		}
-		let result = filterArray.join(',');
-		console.log(result, this.filter);
-		if (result === this.filter) {
-			result = null;
-		}
-		return result;
-	}
-
-	async applyFilters() {
-		// Convierte los filtros en un string que puede pasarse a la consulta
-		const filterString = this.buildFilterString(this.filters);
-		console.log('Filtro aplicado:', filterString);
-		this.filter = filterString; // Actualiza el filtro actual para su comparación
-		this.displayFilterDialog = false; // Cierra el diálogo
-		await this.loadData();
-	}
-	buildFilterString(filters: any): string | null {
-		const filterArray = [];
-		for (const key in filters) {
-			if (filters[key]) {
-				const filterCondition = `${key}=${filters[key]}`;
-				filterArray.push(filterCondition);
-			}
-		}
-		let result = filterArray.join(',');
-		console.log(result, this.filter);
-		if (result === this.filter) {
-			result = null;
-		}
-		return result;
-	}
-
-	openFilterDialog() {
-		this.displayFilterDialog = true;
-	}
 
 	columns: Column[] = [
 		{field: 'id', header: 'ID', visible: true, selected: true, disabled_selected: true, disabled_visible: true},
@@ -165,12 +85,7 @@ export class GeoPredioGeneralComponent {
 
 	loading: boolean = true;
 	@Output() dataUpdated = new EventEmitter<void>();
-
 	async loadData() {
-		if (this.table) {
-			this.table.clear();
-		}
-
 		const selectedFields = this.columns
 			.filter((col) => col.selected)
 			.map((col) => col.field)
@@ -181,7 +96,7 @@ export class GeoPredioGeneralComponent {
 		try {
 			// Intentar cargar desde IndexedDB
 			const cachedData = await this.indexedDbService.getData(this.page);
-			console.log(cachedData);
+			//console.log(cachedData);
 			if (cachedData && cachedData.data.length == this.limit) {
 				this.data_const = cachedData.data;
 				this.totalRecords = cachedData.totalRecords;
@@ -208,9 +123,9 @@ export class GeoPredioGeneralComponent {
 				this.notifyParent();
 
 				// Guardar en IndexedDB, incluyendo totalRecords
-				console.log(this.limit, this.totalRecords, this.page, this.filter, this.search);
+				//console.log(this.limit, this.totalRecords, this.page, this.filter, this.search);
 				if (this.limit == this.totalRecords && !this.filter && !this.search) {
-					console.log('Guardando');
+					//console.log('Guardando');
 					await this.indexedDbService.addData(this.page, transformedData, this.totalRecords);
 				}
 
@@ -222,7 +137,6 @@ export class GeoPredioGeneralComponent {
 			this.loading = false;
 		}
 	}
-
 	notifyParent() {
 		if (this.dataUpdated.observers.length > 0) {
 			this.dataUpdated.emit();
@@ -286,5 +200,84 @@ export class GeoPredioGeneralComponent {
 				'640px': '90vw',
 			},
 		});
+	}
+
+	// Opciones de filtrado
+	filterOptions: any[] = [
+		{label: 'Comienza con', value: 'startsWith'},
+		{label: 'Contiene', value: 'contains'},
+		{label: 'Termina con', value: 'endsWith'},
+		{label: 'Igual a', value: 'equals'},
+		{label: 'Diferente de', value: 'notEquals'},
+	];
+
+	async onFilterChange(event: any) {
+		//console.log(event);
+		if (this.buildFilterStringTable(event.filters)) {
+			this.data = event.filteredValue;
+
+			this.onMapDataUpdated();
+		}
+	}
+	@ViewChild(MapaMostrarFichasComponent) mapComponent!: MapaMostrarFichasComponent;
+	async onMapDataUpdated() {
+		if (this.mapComponent) {
+			this.loading = true;
+			// Enviar los datos recogidos al componente de mapa
+			await this.mapComponent.clearAll();
+			this.mapComponent.initFeature([...this.data]);
+			this.loading = false;
+		}
+	}
+
+	displayFilterDialog: boolean = false;
+	filters: {[key: string]: string} = {}; // Almacenará los valores de los filtros para cada columna
+
+	buildFilterStringTable(filters: any): string {
+		const filterArray = [];
+		for (const key in filters) {
+			if (filters[key]) {
+				filters[key].forEach((element: any) => {
+					if (element.value) {
+						const filterCondition = `${key}=${element.value}`;
+						filterArray.push(filterCondition);
+					}
+				});
+			}
+		}
+		let result = filterArray.join(',');
+		//console.log(result, this.filter);
+		if (result === this.filter) {
+			result = null;
+		}
+		return result;
+	}
+
+	async applyFilters() {
+		// Convierte los filtros en un string que puede pasarse a la consulta
+		const filterString = this.buildFilterString(this.filters);
+		//console.log('Filtro aplicado:', filterString);
+		this.filter = filterString; // Actualiza el filtro actual para su comparación
+		this.displayFilterDialog = false; // Cierra el diálogo
+		await this.loadData();
+	}
+	buildFilterString(filters: any): string | null {
+		const filterArray = [];
+		for (const key in filters) {
+			if (filters[key]) {
+				const filterCondition = `${key}=${filters[key]}`;
+				filterArray.push(filterCondition);
+			}
+		}
+		let result = filterArray.join(',');
+		//console.log(result, this.filter);
+		if (result === this.filter) {
+			result = null;
+		}
+		return result;
+	}
+
+	openFilterDialog() {
+		this.displayFilterDialog = true;
 	}
 }

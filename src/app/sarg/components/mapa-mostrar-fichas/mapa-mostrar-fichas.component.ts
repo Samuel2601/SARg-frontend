@@ -106,7 +106,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 			} else {
 				this.features_arr = [feature];
 			}
-			console.log(this.features_arr);
+			//console.log(this.features_arr);
 			await this.getcategorias();
 			await this.processMapElements(this.features_arr);
 		}
@@ -924,7 +924,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 	onClickHandlerMap = async (e: any) => {
 		if (this.mapCustom) {
-			console.log(e.latLng.lat(), e.latLng.lng());
+			//console.log(e.latLng.lat(), e.latLng.lng());
 		}
 	};
 	ngOnDestroy(): void {
@@ -932,7 +932,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		if (this.mapCustom) {
 			google.maps.event.clearInstanceListeners(this.mapCustom);
 			this.mapCustom = null;
-			console.log('Mapa liberado');
+			//console.log('Mapa liberado');
 		}
 	}
 }

@@ -76,7 +76,7 @@ export class UnificadoTanquesComponent {
 	async ngOnInit() {
 		await this.loadDataUbiTanques();
 		await this.loadData_Area();
-		console.log(this.data);
+		//console.log(this.data);
 		this.primengConfig.ripple = true; // Habilita los efectos de ripple de PrimeNG
 	}
 
@@ -97,7 +97,7 @@ export class UnificadoTanquesComponent {
 				this.data = this.data_Area;
 				this.data = [...this.data, ...this.data_Ubitanque];
 				this.totalRecords_Ubitanque = response.total;
-				console.log(this.data_Ubitanque);
+				//console.log(this.data_Ubitanque);
 				this.loading_Ubitanque = false;
 				this.loading = false;
 			});
@@ -146,7 +146,7 @@ export class UnificadoTanquesComponent {
 				this.data = this.data_Ubitanque;
 				this.data = [...this.data_Area, ...this.data];
 				this.totalRecords_Area = response.total;
-				console.log(this.data_Area);
+				//console.log(this.data_Area);
 				this.loading_Area = false;
 				this.loading = false;
 			});
@@ -175,4 +175,5 @@ export class UnificadoTanquesComponent {
 		this.displayColumnDialog_Area = false;
 		this.loadData_Area(); // Recargar datos con los campos actualizados
 	}
+
 }
