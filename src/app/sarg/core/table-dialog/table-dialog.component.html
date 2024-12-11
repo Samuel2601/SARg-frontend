@@ -28,6 +28,9 @@
                         appendTo="body">
                     </p-columnFilter>
                 </th>
+                <th>
+                    Acción
+                </th>
             </tr>
         </ng-template>
 
@@ -36,6 +39,9 @@
             <tr>
                 <td *ngFor="let col of columns" [hidden]="!col.visible">
                     {{ rowData[col.field] }}
+                </td>
+                <td>
+                    <button pButton pRipple label="Ver" class="p-button-sm p-button-text" (click)="viewmap(rowData)"></button>
                 </td>
             </tr>
         </ng-template>

@@ -1,6 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {ImportsModule} from '../../service/import';
 import {DialogService, DynamicDialogConfig, DynamicDialogRef} from 'primeng/dynamicdialog';
+import { MapService } from '../../service/map.service';
 
 @Component({
 	selector: 'app-table-dialog',
@@ -27,7 +28,8 @@ export class TableDialogComponent {
 
     constructor(
         public ref: DynamicDialogRef,
-        public config: DynamicDialogConfig
+        public config: DynamicDialogConfig,
+        private mapService: MapService
     ) {}
 
     ngOnInit() {
@@ -52,6 +54,10 @@ export class TableDialogComponent {
     }
 
     closeDialog(): void {
+        this.ref.close();
+    }
+    viewmap(item:any){
+        this.mapService.showInfoWindowByItemOrId(item.id);
         this.ref.close();
     }
 }

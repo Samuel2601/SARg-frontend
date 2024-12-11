@@ -6,6 +6,7 @@ import {MarkerClusterer} from '@googlemaps/markerclusterer';
 import {GoogleMapsService} from '../../service/google.maps.service';
 import {ImportsModule} from '../../service/import';
 import proj4 from 'proj4';
+import {MapService} from '../../service/map.service';
 
 interface MarkerGroup {
 	position: google.maps.LatLng;
@@ -39,7 +40,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 	features_arr: any[];
 
-	constructor(private router: Router, private googlemaps: GoogleMapsService, private datePipe: DatePipe) {}
+	constructor(private router: Router, private googlemaps: GoogleMapsService, private datePipe: DatePipe, private mapService: MapService) {}
 	// Estilos dinámicos para el mapa
 	mapStyle: {[key: string]: string} = {};
 	async ngOnInit() {
@@ -48,6 +49,8 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 			width: this.dimencion?.width || '100%', // Valor predeterminado: 100% de ancho
 			height: this.dimencion?.height || '400px', // Valor predeterminado: 400px de alto
 		};
+		// Registrar este componente en el servicio
+		this.mapService.registerMapComponent(this);
 	}
 	mapStyles: google.maps.MapTypeStyle[] = [
 		{
@@ -105,7 +108,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 			}
 			console.log(this.features_arr);
 			await this.getcategorias();
-			await this.marcadoresmapa();
+			await this.processMapElements(this.features_arr);
 		}
 	}
 	actividades: any[] = [];
@@ -383,6 +386,220 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		}
 	}
 
+	// Función principal para procesar marcadores, polígonos y líneas
+	async processMapElements(features_arr: any[]): Promise<void> {
+		try {
+			const bounds = new google.maps.LatLngBounds();
+
+			// Procesar elementos
+			features_arr.forEach((item: any) => {
+				const geomType = item.geom?.type;
+				const coordinates = item.geom?.coordinates;
+				const crsName = item.geom?.crs?.properties?.name;
+
+				if (geomType === 'Point') {
+					this.processPoint(item, coordinates, bounds);
+				} else if (geomType === 'Polygon' || geomType === 'MultiPolygon') {
+					this.processPolygon(item, coordinates, geomType, bounds);
+				} else if (geomType === 'MultiLineString') {
+					this.processMultiLineString(item, coordinates, bounds);
+				}
+			});
+
+			this.setupMarkerListeners();
+
+			if (this.mapCustom) {
+				if (this.markers.length > 0) {
+					this.markerCluster = new MarkerClusterer({
+						map: this.mapCustom,
+						markers: this.markers,
+					});
+				}
+
+				this.mapCustom.fitBounds(bounds);
+
+				// Configurar visibilidad según zoom
+				google.maps.event.addListener(this.mapCustom, 'zoom_changed', () => {
+					const zoomLevel = this.mapCustom.getZoom();
+					this.updateVisibilityByZoom(zoomLevel);
+				});
+			}
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
+	isCategoryActive(item: any): boolean {
+		return !item[this.key_cat] || this.actividad_select.some((act: any) => act.value === item[this.key_cat]);
+	}
+
+	// Procesar puntos
+	private processPoint(item: any, coordinates: any, bounds: google.maps.LatLngBounds): void {
+		if (!coordinates || !this.isCategoryActive(item)) return;
+
+		//this.ensureProjection(crsName);
+
+		const position = new google.maps.LatLng(coordinates[1], coordinates[0]);
+		const marker = this.createMarker(position, item);
+		const infoWindow = this.createInfoWindow(item);
+
+		const nearestGroup = this.findNearestGroup(position);
+
+		if (nearestGroup) {
+			nearestGroup.markers.push({marker, item, infoWindow});
+			this.updateGroupCenter(nearestGroup);
+		} else {
+			this.markerGroups.push({
+				position,
+				markers: [{marker, item, infoWindow}],
+			});
+		}
+
+		this.markers.push(marker);
+		bounds.extend(position);
+	}
+
+	// Procesar polígonos y multipolygons
+	private processPolygon(item: any, coordinates: any, geomType: string, bounds: google.maps.LatLngBounds): void {
+		const polys = geomType === 'Polygon' ? [coordinates] : coordinates;
+
+		polys.forEach((polygonCoords: any) => {
+			polygonCoords.forEach((ring: any) => {
+				const path = ring.map((coord: any) => {
+					const position = new google.maps.LatLng(coord[1], coord[0]);
+					bounds.extend(position);
+					return position;
+				});
+
+				const polygon = this.createPolygon(path, item);
+				this.polygons.push(polygon);
+
+				google.maps.event.addListener(polygon, 'click', (event) => {
+					this.openInfoWindowAt(event.latLng, item);
+				});
+			});
+		});
+	}
+
+	// Procesar líneas
+	private processMultiLineString(item: any, coordinates: any, bounds: google.maps.LatLngBounds): void {
+		coordinates.forEach((lineString: any) => {
+			const path = lineString.map((coord: any) => {
+				const position = new google.maps.LatLng(coord[1], coord[0]);
+				bounds.extend(position);
+				return position;
+			});
+
+			const polyline = this.createPolyline(path, item);
+			this.polylines.push(polyline);
+
+			google.maps.event.addListener(polyline, 'click', (event) => {
+				this.openInfoWindowAt(event.latLng, item);
+			});
+		});
+	}
+
+	// Configurar listeners para marcadores
+	private setupMarkerListeners(): void {
+		this.markerGroups.forEach((group) => {
+			group.markers.forEach(({marker, infoWindow}) => {
+				if (group.markers.length > 1) {
+					marker.setPosition(group.position);
+				}
+
+				marker.addListener('click', () => {
+					if (group.markers.length > 1) {
+						this.handleGroupClick(group);
+					} else {
+						this.setupSingleMarkerListeners(marker, infoWindow, group.position);
+					}
+				});
+			});
+		});
+	}
+
+	// Actualizar visibilidad según zoom
+	private updateVisibilityByZoom(zoomLevel: number): void {
+		this.polylines.forEach((polyline) => {
+			polyline.setMap(zoomLevel > 14 ? this.mapCustom : null);
+		});
+	}
+
+	// Abrir un InfoWindow en una posición específica
+	public openInfoWindowAt(position: google.maps.LatLng, item: any): void {
+		if (this.activeInfoWindow) {
+			this.activeInfoWindow.close();
+		}
+
+		this.activeInfoWindow = this.createInfoWindow(item);
+		this.activeInfoWindow.setPosition(position);
+		this.activeInfoWindow.open(this.mapCustom);
+	}
+
+	// Mostrar InfoWindow y centrar el mapa en el elemento
+	public showInfoWindowByItemOrId(itemOrId: any): void {
+		const elementData = this.mapElements[itemOrId];
+
+		if (!elementData) {
+			console.warn('Elemento no encontrado:', itemOrId);
+			return;
+		}
+
+		const {type, element, item} = elementData;
+
+		// Cerrar InfoWindow activo si existe
+		if (this.activeInfoWindow) {
+			this.activeInfoWindow.close();
+		}
+
+		// Crear y abrir InfoWindow
+		this.activeInfoWindow = this.createInfoWindow(item);
+
+		let center: google.maps.LatLng | null = null;
+
+		if (type === 'marker') {
+			center = (element as google.maps.Marker).getPosition();
+			this.activeInfoWindow.open(this.mapCustom, element);
+		} else if (type === 'polygon' || type === 'polyline') {
+			center = this.getElementCenter(element);
+			this.activeInfoWindow.setPosition(center);
+			this.activeInfoWindow.open(this.mapCustom);
+		}
+
+		// Centrar el mapa en el elemento
+		if (center) {
+			this.mapCustom.setCenter(center);
+
+			// Ajustar el zoom para polígonos o líneas (opcional)
+			if (type === 'polygon' || type === 'polyline') {
+				this.fitMapToBounds(element);
+			}
+		}
+	}
+
+	// Obtener el centro del polígono o línea
+	private getElementCenter(element: any): google.maps.LatLng {
+		if (element instanceof google.maps.Polygon) {
+			const bounds = new google.maps.LatLngBounds();
+			element.getPath().forEach((point: google.maps.LatLng) => bounds.extend(point));
+			return bounds.getCenter();
+		} else if (element instanceof google.maps.Polyline) {
+			const bounds = new google.maps.LatLngBounds();
+			element.getPath().forEach((point: google.maps.LatLng) => bounds.extend(point));
+			return bounds.getCenter();
+		}
+		return null;
+	}
+
+	// Ajustar el mapa a los límites del elemento (polígono o línea)
+	private fitMapToBounds(element: any): void {
+		const bounds = new google.maps.LatLngBounds();
+		if (element instanceof google.maps.Polygon || element instanceof google.maps.Polyline) {
+			element.getPath().forEach((point: google.maps.LatLng) => bounds.extend(point));
+		}
+		this.mapCustom.fitBounds(bounds);
+	}
+
 	private updateGroupCenter(group: MarkerGroup) {
 		// Calcular el centro promedio del grupo
 		let totalLat = 0;
@@ -432,7 +649,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		let lat = coordinates_poligon?.lat || null,
 			lng = coordinates_poligon?.lng || null;
 
-		if (coordinates && crsName && !coordinates_poligon) {
+		/*if (coordinates && crsName && !coordinates_poligon) {
 			// Asegurarse de que el CRS esté definido en proj4
 			if (!proj4.defs[crsName]) {
 				// Definir el CRS en proj4 (si es necesario)
@@ -444,7 +661,7 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 
 			// Convertir a WGS84
 			[lat, lng] = proj4(crsName, proj4.WGS84, [coordinates[0], coordinates[1]]);
-		}
+		}*/
 
 		// Crear contenido del InfoWindow
 		const infoContent = this.buildInfoContent(item, lng, lat);
@@ -503,8 +720,10 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		return key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, (str) => str.toUpperCase());
 	}
 
+	private mapElements: {[id: string]: {type: string; element: any; item: any}} = {};
+
 	private createMarker(position: google.maps.LatLng, item: any): google.maps.Marker {
-		return new google.maps.Marker({
+		const marker = new google.maps.Marker({
 			title: this.incidente ? 'Incidente' : item.title_marcador,
 			position: position,
 			map: this.mapCustom,
@@ -513,10 +732,16 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 				scaledSize: this.getMarkerSize(item),
 			},
 		});
+
+		// Asociar el ID del item con el marcador
+		if (item.id) {
+			this.mapElements[item.id] = {type: 'marker', element: marker, item};
+		}
+
+		return marker;
 	}
 
-	private createPolyhgon(path) {
-		// Calcular el área del polígono para determinar el zIndex
+	private createPolygon(path: google.maps.LatLng[], item: any): google.maps.Polygon {
 		let polygonArea = 0;
 		try {
 			polygonArea = google.maps.geometry.spherical.computeArea(path);
@@ -525,12 +750,10 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 		}
 		const zIndexValue = Math.round(1000 - polygonArea);
 
-		// Obtener los valores de las variables CSS
 		const rootStyle = getComputedStyle(document.documentElement);
 		const primaryColor = rootStyle.getPropertyValue('--highlight-text-color').trim();
 		const surfaceColor = rootStyle.getPropertyValue('--text-color').trim();
 
-		// Crear el polígono con el zIndex calculado
 		const polygon = new google.maps.Polygon({
 			paths: path,
 			strokeColor: surfaceColor,
@@ -538,27 +761,34 @@ export class MapaMostrarFichasComponent implements OnInit, OnDestroy {
 			strokeWeight: 2,
 			fillColor: primaryColor,
 			fillOpacity: 0.35,
-			zIndex: zIndexValue, // Usar el zIndex basado en el tamaño del área
+			zIndex: zIndexValue,
 		});
 		polygon.setMap(this.mapCustom);
 
+		// Asociar el ID del item con el polígono
+		if (item.id) {
+			this.mapElements[item.id] = {type: 'polygon', element: polygon, item};
+		}
+
 		return polygon;
 	}
-	private createPolyline(path) {
-		// Obtener los valores de las variables CSS
+
+	private createPolyline(path: google.maps.LatLng[], item: any): google.maps.Polyline {
 		const rootStyle = getComputedStyle(document.documentElement);
 		const primaryColor = rootStyle.getPropertyValue('--highlight-text-color').trim();
-		const surfaceColor = rootStyle.getPropertyValue('--text-color').trim();
 
-		// Crear la polilínea
 		const polyline = new google.maps.Polyline({
 			path: path,
 			strokeColor: primaryColor,
 			strokeOpacity: 0.8,
-			strokeWeight: 3, // Puedes ajustar el grosor de la línea aquí
+			strokeWeight: 3,
 		});
+		polyline.setMap(this.mapCustom);
 
-		polyline.setMap(this.mapCustom); // Agregar la polilínea al mapa
+		// Asociar el ID del item con la polilínea
+		if (item.id) {
+			this.mapElements[item.id] = {type: 'polyline', element: polyline, item};
+		}
 
 		return polyline;
 	}
